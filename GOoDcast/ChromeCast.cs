@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Channels;
     using Device;
+    using Miscellaneous;
 
     public class Chromecast : IChromecast
     {
@@ -29,6 +30,9 @@
             client = new ChromecastClient();
             connectionChannel = new ConnectionChannel(client);
             heartbeatChannel = new HeartbeatChannel(client);
+
+            client.BindChannel(connectionChannel);
+            client.BindChannel(heartbeatChannel);
         }
 
         public string Name { get; }
@@ -36,8 +40,7 @@
         public async Task ConnectAsync()
         {
             await client.ConnectAsync(IpAddress);
-            await connectionChannel.OpenConnection();
-            Task _ = heartbeatChannel.StartHeartbeat();
+            await connectionChannel.ConnectAsync(DefaultIdentifiers.DestinationId);
         }
 
         public Task DisconnectAsync()
@@ -64,6 +67,8 @@
             if (channel == null)
             {
                 channel = factory.Invoke(client);
+
+                client.BindChannel(channel);
 
                 if (channel != null) channels.Add(channel);
             }

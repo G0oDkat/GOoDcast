@@ -1,10 +1,5 @@
-﻿using System.Threading.Tasks;
-
-namespace SharpCaster.Controllers
+﻿namespace GOoDcast.Applications
 {
-    using GOoDcast.Applications;
-    using GOoDcast.Channels;
-
     //public class PlexController : MediaApplicationBase
     //{
     //    public PlexController(ReceiverChannel receiverChannel, MediaChannel mediaChannel) : base("9AC194DC", receiverChannel, mediaChannel)

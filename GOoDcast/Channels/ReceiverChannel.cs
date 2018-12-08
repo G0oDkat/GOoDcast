@@ -2,136 +2,142 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Messages.Receiver;
+    using Miscellaneous;
     using Models;
-    using Models.ChromecastRequests;
-    using Models.ChromecastStatus;
+    using Models.Receiver;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using ProtoBuf;
 
-    public class ReceiverChannel : ChromecastChannel
+    /// <summary>
+    /// Receiver channel
+    /// </summary>
+    public class ReceiverChannel : StatusChannel<ReceiverStatus, ReceiverStatusMessage>, IReceiverChannel
     {
-        private string chromecastApplicationId;
-        private string currentApplicationSessionId;
-
+        /// <summary>
+        /// Initializes a new instance of <see cref="ReceiverChannel"/> class
+        /// </summary>
         public ReceiverChannel(IChromecastClient client) : base(client, "urn:x-cast:com.google.cast.receiver")
         {
         }
 
-        public float? Volume { get; private set; }
+        /// <summary>
+        /// Launches an application
+        /// </summary>
+        /// <param name="applicationId">application identifier</param>
+        /// <returns>receiver status</returns>
+        public async Task<ReceiverStatus> LaunchAsync(string applicationId)
+        {
+            await SendAsync(new LaunchMessage {ApplicationId = applicationId}, DefaultIdentifiers.DestinationId);
+            await Task.Delay(200);
+            return await CheckStatusAsync();
+        }
 
-        public bool? IsMuted { get; private set; }
+        /// <summary>
+        /// Sets the volume
+        /// </summary>
+        /// <param name="level">volume level (0.0 to 1.0)</param>
+        /// <returns>receiver status</returns>
+        public async Task<ReceiverStatus> SetVolumeAsync(float level)
+        {
+            return await SetVolumeAsync(level, null);
+        }
 
-        public bool? IsActiveInput { get; private set; }
+        /// <summary>
+        /// Sets a value indicating whether the audio should be muted
+        /// </summary>
+        /// <param name="isMuted">true if audio should be muted; otherwise, false</param>
+        /// <returns>receiver status</returns>
+        public async Task<ReceiverStatus> SetIsMutedAsync(bool isMuted)
+        {
+            return await SetVolumeAsync(null, isMuted);
+        }
 
-        public bool? IsStandby { get; set; }
+        private async Task<ReceiverStatus> SetVolumeAsync(float? level, bool? isMuted, float stepInterval = 0.05f)
+        {
+            var message = new SetVolumeMessage
+            {
+                Volume = new Volume()
+                {
+                    Level = level,
+                    IsMuted = isMuted,
+                    StepInterval = stepInterval
+                }
+            };
 
+            return Status = (await RequestAsync<ReceiverStatusMessage>(message, DefaultIdentifiers.DestinationId)).Status;
+        }
 
-        private List<ChromecastApplication> applications;
+        private async Task<ReceiverStatus> CheckStatusAsync()
+        {
+            var status = Status;
+            if (status == null)
+            {
+                status = await GetStatusAsync();
+            }
 
-        public IReadOnlyCollection<ChromecastApplication> Applications => applications;
+            return Status = status;
+        }
 
-        //private async void ReceiverChannel_MessageReceived(object sender, ChromecastSSLClientDataReceivedArgs e)
+        /// <summary>
+        /// Checks the connection is well established
+        /// </summary>
+        /// <param name="ns">namespace</param>
+        /// <returns>an application object</returns>
+        //public async Task<Application> EnsureConnectionAsync(string ns)
         //{
-        //    var json = e.Message.PayloadUtf8;
-        //    var response = JsonConvert.DeserializeObject<ChromecastStatusResponse>(json);
-        //    if (response.ChromecastStatus == null) return;
-        //    Client.ChromecastStatus = response.ChromecastStatus;
-        //    Client.Volume = response.ChromecastStatus.Volume;
-        //    await ConnectToApplication(Client.ChromecastApplicationId);
+        //    var status = await CheckStatusAsync();
+        //    var application = status.Applications.First(a => a.Namespaces.Any(n => n.Name == ns));
+        //    if (!IsConnected)
+        //    {
+        //        await Sender.GetChannel<IConnectionChannel>().ConnectAsync(application.TransportId);
+        //        IsConnected = true;
+        //    }
+        //    return application;
         //}
 
-        public async Task LaunchApplication(string applicationId, bool joinExisting = true)
+        //private void Disconnected(object sender, System.EventArgs e)
+        //{
+        //    IsConnected = false;
+        //}
+
+        /// <summary>
+        /// Stops the current applications
+        /// </summary>
+        /// <param name="applications">applications to stop</param>
+        /// <returns>ReceiverStatus</returns>
+        public async Task<ReceiverStatus> StopAsync(params Application[] applications)
         {
-            chromecastApplicationId = applicationId ?? throw new ArgumentNullException(nameof(applicationId));
-
-            //if (joinExisting && await ConnectToApplication(applicationId))
-            //{
-            //    //await Client.MediaChannel.GetMediaStatus();
-            //    return;
-            //}
-
-            ChromecastStatusResponse response =
-                await RequestAsync<LaunchRequest, ChromecastStatusResponse>(new LaunchRequest(applicationId));
-        }
-
-        public async Task<bool> ConnectToApplication(string applicationId)
-        {
-            throw new NotImplementedException();
-
-            //var startedApplication = Client.ChromecastStatus?.Applications?.FirstOrDefault(x => x.AppId == applicationId);
-            //if (startedApplication == null) return false;
-            //if (!string.IsNullOrWhiteSpace(Client.CurrentApplicationSessionId)) return false;
-            //Client.CurrentApplicationSessionId = startedApplication.SessionId;
-            //Client.CurrentApplicationTransportId = startedApplication.TransportId;
-            //await Client.ConnectionChannel.ConnectWithDestination();
-            //Client.RunningApplication = startedApplication;
-            //return true;
-        }
-
-        public async Task RefreshChromecastStatus()
-        {
-            ChromecastStatusResponse response =
-                await RequestAsync<GetStatusRequest, ChromecastStatusResponse>(new GetStatusRequest());
-
-            UpdateState(response.ChromecastStatus);
-        }
-
-        public async Task SetMute(bool muted)
-        {
-            ChromecastStatusResponse response =
-                await RequestAsync<VolumeRequest, ChromecastStatusResponse>(new VolumeRequest(muted));
-            UpdateState(response.ChromecastStatus);
-        }
-
-        public async Task IncreaseVolume(double amount = 0.05)
-        {
-            if (!Volume.HasValue)
+            IEnumerable<Application> apps = applications;
+            if (apps == null || !apps.Any())
             {
-                await RefreshChromecastStatus();
+                apps = (await CheckStatusAsync()).Applications;
+                if (apps == null || !apps.Any())
+                {
+                    return null;
+                }
             }
 
-            await SetVolume(Volume?? 0 + amount);
-        }
-
-        public async Task DecreaseVolume(double amount = 0.05)
-        {
-            if (!Volume.HasValue)
+            ReceiverStatusMessage receiverStatusMessage = null;
+            foreach (var application in apps)
             {
-                await RefreshChromecastStatus();
+                receiverStatusMessage =
+                    await RequestAsync<ReceiverStatusMessage>(new StopMessage() {SessionId = application.SessionId}, DefaultIdentifiers.DestinationId);
             }
 
-            await SetVolume(Volume ?? 100 - amount);
+            return Status = receiverStatusMessage.Status;
         }
 
-        public async Task SetVolume(double level)
+        /// <summary>
+        /// Retrieves the status
+        /// </summary>
+        /// <returns>the status</returns>
+        private async Task<ReceiverStatus> GetStatusAsync()
         {
-            if (level < 0 || level > 1.0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(level), level, "level must be between 0.0f and 1.0f");
-            }
-
-            var request = new VolumeRequest(level);
-            ChromecastStatusResponse response = await RequestAsync<VolumeRequest, ChromecastStatusResponse>(request);
-            UpdateState(response.ChromecastStatus);
-        }
-
-        public async Task StopApplication()
-        {
-            var request = new StopApplicationRequest(currentApplicationSessionId);
-            ChromecastStatusResponse response =await RequestAsync<StopApplicationRequest, ChromecastStatusResponse>(request);
-            UpdateState(response.ChromecastStatus);
-        }
-
-        private void UpdateState(ChromecastStatus status)
-        {
-            Volume = status.Volume.level;
-            IsMuted = status.Volume.muted;
-            applications.Clear();
-            applications.AddRange(status.Applications);
-            IsActiveInput = status.IsActiveInput;
-            IsStandby = status.IsStandBy;
+            return Status = (await RequestAsync<ReceiverStatusMessage>(new GetStatusMessage(), DefaultIdentifiers.DestinationId)).Status;
         }
     }
 }

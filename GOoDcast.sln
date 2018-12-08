@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GOoDcast.Test", "GOoDcast.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GOoDcast", "GOoDcast\GOoDcast.csproj", "{20F6F349-163D-4ACF-A13E-CCC5C16F4952}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GOoDcast.Sample", "GOoDcast.Sample\GOoDcast.Sample.csproj", "{9E1524D8-6D2D-4F3B-973E-3490459CBAF5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{20F6F349-163D-4ACF-A13E-CCC5C16F4952}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20F6F349-163D-4ACF-A13E-CCC5C16F4952}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20F6F349-163D-4ACF-A13E-CCC5C16F4952}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E1524D8-6D2D-4F3B-973E-3490459CBAF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E1524D8-6D2D-4F3B-973E-3490459CBAF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E1524D8-6D2D-4F3B-973E-3490459CBAF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E1524D8-6D2D-4F3B-973E-3490459CBAF5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

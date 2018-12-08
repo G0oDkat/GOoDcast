@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace SharpCaster.Controllers
+﻿namespace GOoDcast.Applications
 {
     //public class SharpCasterDemoController : BaseMediaController
     //{

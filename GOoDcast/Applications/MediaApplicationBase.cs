@@ -3,65 +3,75 @@
     using System;
     using System.Threading.Tasks;
     using Channels;
+    using Models.Media;
 
-    //public abstract class MediaApplicationBase : ApplicationBase
-    //{
-    //    protected MediaApplicationBase(string applicationId, ReceiverChannel receiverChannel, MediaChannel mediaChannel)
-    //        : base(applicationId, receiverChannel)
-    //    {
-    //        MediaChannel = mediaChannel ?? throw new ArgumentNullException(nameof(mediaChannel));
-    //    }
+    public abstract class MediaApplicationBase : ApplicationBase
+    {
+        protected MediaApplicationBase(string applicationId, IReceiverChannel receiverChannel, IMediaChannel mediaChannel)
+            : base(applicationId, receiverChannel)
+        {
+            MediaChannel = mediaChannel ?? throw new ArgumentNullException(nameof(mediaChannel));
+        }
 
-    //    protected MediaChannel MediaChannel { get; }
+        protected IMediaChannel MediaChannel { get; }
 
-    //    public virtual async Task Play()
-    //    {
-    //        await MediaChannel.Play();
-    //    }
 
-    //    public virtual async Task Pause()
-    //    {
-    //        await MediaChannel.Pause();
-    //    }
+        protected virtual Task LoadAsync(MediaInformation mediaInformation)
+        {
+            if (mediaInformation == null) throw new ArgumentNullException(nameof(mediaInformation));
 
-    //    public virtual async Task Seek(double seconds)
-    //    {
-    //        await MediaChannel.Seek(seconds);
-    //    }
+            return MediaChannel.LoadAsync(mediaInformation, TransportId, SessionId);
+        }
 
-    //    public virtual async Task Stop()
-    //    {
-    //        await MediaChannel.Stop();
-    //    }
 
-    //    public virtual async Task Next()
-    //    {
-    //        await MediaChannel.Next();
-    //    }
+        public virtual Task PlayAsync()
+        {
+            return MediaChannel.PlayAsync(TransportId);
+        }
 
-    //    public virtual async Task Previous()
-    //    {
-    //        await MediaChannel.Previous();
-    //    }
+        public virtual Task PauseAsync()
+        {
+            return MediaChannel.PauseAsync(TransportId);
+        }
 
-    //    public async Task VolumeUp(double amount = 0.05)
-    //    {
-    //        await ReceiverChannel.IncreaseVolume(amount);
-    //    }
+        public virtual Task SeekAsync(double seconds)
+        {
+            return MediaChannel.SeekAsync(seconds, TransportId);
+        }
 
-    //    public async Task VolumeDown(double amount = 0.05)
-    //    {
-    //        await ReceiverChannel.DecreaseVolume(amount);
-    //    }
+        public virtual Task StopAsync()
+        {
+            return MediaChannel.StopAsync(TransportId);
+        }
 
-    //    public async Task SetMute(bool muted)
-    //    {
-    //        await ReceiverChannel.SetMute(muted);
-    //    }
+        //public virtual async Task NextAsync()
+        //{
+        //    await MediaChannel.NextAsync(TransportId);
+        //}
 
-    //    public async Task SetVolume(double volume)
-    //    {
-    //        await ReceiverChannel.SetVolume(volume);
-    //    }
-    //}
+        //public virtual async Task PreviousAsync()
+        //{
+        //    await MediaChannel.PreviousAsync(TransportId);
+        //}
+
+        //public async Task VolumeUpAsync(double amount = 0.05)
+        //{
+        //    await ReceiverChannel.IncreaseVolumeAsync(amount);
+        //}
+
+        //public async Task VolumeDownAsync(double amount = 0.05)
+        //{
+        //    await ReceiverChannel.DecreaseVolumeAsync(amount);
+        //}
+
+        public async Task SetIsMutedAsync(bool muted)
+        {
+            await ReceiverChannel.SetIsMutedAsync(muted);
+        }
+
+        public async Task SetVolumeAsync(float volume)
+        {
+            await ReceiverChannel.SetVolumeAsync(volume);
+        }
+    }
 }

@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using Models;
-    using Models.CustomTypes;
+    
     using Newtonsoft.Json;
 
     //public class YouTubeChannel : ChromecastChannel

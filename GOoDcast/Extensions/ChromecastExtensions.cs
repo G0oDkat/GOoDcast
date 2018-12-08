@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GOoDcast.Extensions
+﻿namespace GOoDcast.Extensions
 {
+    using System.Threading.Tasks;
+    using Applications;
     using Channels;
-    using SharpCaster.Controllers;
 
-    //public static class ChromecastExtensions
-    //{
-    //    public static async Task<YouTubeApplication> LaunchYouTube(this Chromecast chromecast)
-    //    {
-    //        ReceiverChannel receiverChannel = chromecast.GetOrCreateChannel(c => new ReceiverChannel(c));
-    //        MediaChannel mediaChannel = chromecast.GetOrCreateChannel(c => new MediaChannel(c));
-    //        var application = new YouTubeApplication(receiverChannel, mediaChannel);
-    //        await application.LaunchApplication();
-    //        return application;
-    //    }
-    //}
+    public static class ChromecastExtensions
+    {
+        public static async Task<YouTubeApplication> LaunchYouTube(this IChromecast chromecast)
+        {
+            ReceiverChannel receiverChannel = chromecast.GetOrCreateChannel(c => new ReceiverChannel(c));
+            MediaChannel mediaChannel = chromecast.GetOrCreateChannel(c => new MediaChannel(c));
+            var application = new YouTubeApplication(receiverChannel, mediaChannel);
+            await application.LaunchApplicationAsync();
+            return application;
+        }
+    }
 }

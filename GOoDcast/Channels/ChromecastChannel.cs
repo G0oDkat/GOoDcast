@@ -2,7 +2,10 @@ namespace GOoDcast.Channels
 {
     using System;
     using System.Threading.Tasks;
+    using Messages;
+    using Miscellaneous;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using ProtoBuf;
 
     public abstract class ChromecastChannel : IChromecastChannel
@@ -15,38 +18,19 @@ namespace GOoDcast.Channels
 
         private IChromecastClient Client { get; }
 
-        protected string Namespace { get; }
+        public string Namespace { get; }
 
-        protected async Task<TResponse> RequestAsync<TRequest, TResponse>(TRequest request)
+        public abstract Task OnPushMessageReceivedAsync(JObject rawMessage);
+
+
+        protected Task<TResponse> RequestAsync<TResponse>(IMessageWithId request, string destinationId) where TResponse : IMessageWithId
         {
-            ChromecastMessage requestMessage = RequestToMessage(request);
-            ChromecastMessage responseMessage = await Client.RequestAsync(requestMessage);
-
-            //TODO response validation
-
-            //if (requestMessage.Namespace != responseMessage.Namespace)
-            //{
-
-            //}
-
-            var response = JsonConvert.DeserializeObject<TResponse>(responseMessage.PayloadUtf8);
-
-            return response;
+            return Client.RequestAsync<TResponse>(Namespace, request, destinationId);            
         }
 
-        protected Task SendAsync<TRequest>(TRequest request)
-        {
-            ChromecastMessage requestMessage = RequestToMessage(request);
-            return Client.SendAsync(requestMessage);
-        }
-
-        private ChromecastMessage RequestToMessage<TRequest>(TRequest request)
-        {
-            var settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-
-            string payload = JsonConvert.SerializeObject(request, settings);
-
-            return new ChromecastMessage(Namespace, payload);
+        protected Task SendAsync(IMessage request, string destinationId)
+        {            
+            return Client.SendAsync(Namespace, request, destinationId);
         }
     }
 }

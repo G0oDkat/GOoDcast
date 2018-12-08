@@ -55,6 +55,7 @@
     <Reference Include="System.ServiceModel" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Applications\YouTubeApplicationTest.cs" />
     <Compile Include="Channels\ReciverChannelTest.cs" />
     <Compile Include="ChromecastTest.cs" />
     <Compile Include="DeviceLocatorTest.cs" />

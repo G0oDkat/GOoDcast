@@ -4,7 +4,7 @@ namespace GOoDcast.Channels
     using System.Linq;
     using System.Threading.Tasks;
     using Models;
-    using Models.ChromecastRequests;
+   
 
     //public class WebChannel : ChromecastChannel
     //{

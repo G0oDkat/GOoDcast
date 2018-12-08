@@ -2,8 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Messages.Connection;
+    using Messages.Hearbeat;
     using Models;
-    using Models.ChromecastRequests;
+    using Newtonsoft.Json.Linq;
 
     public class ConnectionChannel : ChromecastChannel
     {
@@ -12,15 +14,16 @@
         {
         }
 
-        public async Task OpenConnection()
+        public async Task ConnectAsync(string destinationId)
         {
-            await SendAsync(new ConnectRequest());
+            await SendAsync(new ConnectMessage(), destinationId);
         }
 
-        public async Task ConnectWithDestination()
+        public override Task OnPushMessageReceivedAsync(JObject rawMessage)
         {
-            throw new NotImplementedException();
-            //await RequestAsync(MessageFactory.ConnectWithDestination(Client.CurrentApplicationTransportId));
+            //TODO: handle close message
+
+            return Task.CompletedTask;
         }
     }
 }

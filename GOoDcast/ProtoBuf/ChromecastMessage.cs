@@ -1,6 +1,7 @@
 ﻿namespace GOoDcast.ProtoBuf
 {
     using System;
+    using System.Text;
     using global::ProtoBuf;
     using Newtonsoft.Json;
 
@@ -8,14 +9,14 @@
     public class ChromecastMessage
     {
         public ChromecastMessage()
-        {       
+        {
         }
 
-        public ChromecastMessage(string @namespace, string payload)
+        public ChromecastMessage(string @namespace, string payload, string destinationId = "receiver-0")
         {
             ProtocolVersion = ProtoBuf.ProtocolVersion.Castv210;
             SourceId = "sender-0";
-            DestinationId = "receiver-0";                       
+            DestinationId = destinationId ?? throw new ArgumentNullException(nameof(destinationId));
             Namespace = @namespace ?? throw new ArgumentNullException(nameof(@namespace));
             PayloadType = ProtoBuf.PayloadType.String;
             PayloadUtf8 = payload ?? throw new ArgumentNullException(nameof(payload));
@@ -64,9 +65,17 @@
         [ProtoMember(7)]
         public byte[] PayloadBinary { get; set; }
 
+#if DEBUG
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this);
+            return
+                $"[Namespace:{Namespace}, SourceId: {SourceId}, DestinationId: {DestinationId}, Payload: {PayloadUtf8}  ]";
+        }
+#endif
+
+        public string GetPayloadByType()
+        {
+            return PayloadType == ProtoBuf.PayloadType.Binary ? Encoding.UTF8.GetString(PayloadBinary) : PayloadUtf8;
         }
     }
 

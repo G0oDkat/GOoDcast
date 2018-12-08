@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace SharpCaster.Controllers
+namespace GOoDcast.Applications
 {
-    using GOoDcast.Applications;
-
     //public class WebController : BaseController
     //{
     //    public static string WebAppId = "5CB45E5A";

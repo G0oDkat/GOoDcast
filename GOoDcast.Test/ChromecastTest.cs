@@ -26,7 +26,7 @@
             {
                 await chromecast.ConnectAsync();
 
-                ReceiverChannel channel = chromecast.GetOrCreateChannel(c => new ReceiverChannel(c));
+                IReceiverChannel channel = chromecast.GetOrCreateChannel(c => new ReceiverChannel(c));
 
                 Assert.IsNotNull(channel);
                 await chromecast.DisconnectAsync();

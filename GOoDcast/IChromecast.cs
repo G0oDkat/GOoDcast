@@ -1,9 +1,7 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace GOoDcast
+﻿namespace GOoDcast
 {
     using System;
+    using System.Threading.Tasks;
     using Channels;
 
     public interface IChromecast : IDisposable
@@ -12,7 +10,9 @@ namespace GOoDcast
 
         Task ConnectAsync();
         Task DisconnectAsync();
-
         TChannel GetChannel<TChannel>() where TChannel : IChromecastChannel;
+
+        TChannel GetOrCreateChannel<TChannel>(Func<IChromecastClient, TChannel> factory)
+            where TChannel : IChromecastChannel;
     }
 }
