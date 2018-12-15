@@ -8,14 +8,15 @@
     using Channels;
     using Device;
     using Miscellaneous;
+    using Ninject;
 
     public class Chromecast : IChromecast
     {
         private readonly HashSet<IChromecastChannel> channels;
         private readonly IChromecastClient client;
-        private readonly ConnectionChannel connectionChannel;
+        private readonly IConnectionChannel connectionChannel;
         private readonly string IpAddress;
-        private readonly HeartbeatChannel heartbeatChannel;
+        private readonly StandardKernel kernel;
 
         public Chromecast(DeviceInfo deviceInfo) : this(deviceInfo?.IpAddress, deviceInfo?.FriendlyName)
         {
@@ -27,13 +28,16 @@
             Name = name ?? throw new ArgumentNullException(nameof(name));
 
             client = new ChromecastClient();
-            connectionChannel = new ConnectionChannel(client);
-            heartbeatChannel = new HeartbeatChannel(client);
+            kernel = new StandardKernel(new ChannelModule());
+            kernel.Bind<IChromecastClient>().ToConstant(client);
+
+            connectionChannel = kernel.Get<IConnectionChannel>();
+            var heartbeatChannel = kernel.Get<IHeartbeatChannel>();
 
             client.BindChannel(connectionChannel);
             client.BindChannel(heartbeatChannel);
 
-            channels = new HashSet<IChromecastChannel> {connectionChannel};
+            channels = new HashSet<IChromecastChannel> {connectionChannel, heartbeatChannel};
         }
 
         public string Name { get; }
@@ -52,27 +56,18 @@
         public void Dispose()
         {
             client?.Dispose();
+            kernel?.Dispose();
         }
 
         public TChannel GetChannel<TChannel>() where TChannel : IChromecastChannel
         {
-            return channels.OfType<TChannel>().FirstOrDefault();
-        }
-
-        public TChannel GetOrCreateChannel<TChannel>(Func<IChromecastClient, TChannel> factory)
-            where TChannel : IChromecastChannel
-        {
-            if (factory == null) throw new ArgumentNullException(nameof(factory));
-
             TChannel channel = channels.OfType<TChannel>().FirstOrDefault();
 
             if (channel == null)
             {
-                channel = factory.Invoke(client);
-
+                channel = kernel.Get<TChannel>();
                 client.BindChannel(channel);
-
-                if (channel != null) channels.Add(channel);
+                channels.Add(channel);
             }
 
             return channel;

@@ -5,7 +5,7 @@
     using Miscellaneous;
     using Newtonsoft.Json.Linq;
 
-    public class HeartbeatChannel : ChromecastChannel
+    public class HeartbeatChannel : ChromecastChannel, IHeartbeatChannel
     {
         public HeartbeatChannel(IChromecastClient client) : base(client, "urn:x-cast:com.google.cast.tp.heartbeat")
         {

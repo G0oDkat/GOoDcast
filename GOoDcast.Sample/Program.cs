@@ -25,11 +25,11 @@
                 await chromecast.ConnectAsync();
                 Console.WriteLine("Device connected");
 
-                WebApplication app = await chromecast.LaunchWeb();
-                await app.LoadUrl("www.google.com");
+                //WebApplication app = await chromecast.LaunchWeb();
+                //await app.LoadUrl("www.google.com");
 
                 Console.WriteLine("Launching YouTube");
-                //YouTubeApplication app = await chromecast.LaunchYouTube();
+                YouTubeApplication app = await chromecast.LaunchYouTube();
                 Console.WriteLine("App launched");
                 //await app.LoadAsync("SokndgrCMWU");
 

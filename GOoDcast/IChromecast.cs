@@ -11,8 +11,5 @@
         Task ConnectAsync();
         Task DisconnectAsync();
         TChannel GetChannel<TChannel>() where TChannel : IChromecastChannel;
-
-        TChannel GetOrCreateChannel<TChannel>(Func<IChromecastClient, TChannel> factory)
-            where TChannel : IChromecastChannel;
     }
 }
