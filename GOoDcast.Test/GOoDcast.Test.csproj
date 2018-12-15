@@ -66,7 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GOoDcast\GOoDcast.csproj">
-      <Project>{20f6f349-163d-4acf-a13e-ccc5c16f4952}</Project>
+      <Project>{dd4c31f8-2bd5-4a53-a967-995f21e229b6}</Project>
       <Name>GOoDcast</Name>
     </ProjectReference>
   </ItemGroup>

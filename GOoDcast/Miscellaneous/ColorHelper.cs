@@ -3,6 +3,7 @@
     using System;
     using System.Drawing;
 
+
     /// <summary>
     /// Helper for <see cref="Color"/> class
     /// </summary>

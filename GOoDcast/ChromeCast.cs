@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
+    using System.Net;
     using System.Threading.Tasks;
     using Channels;
     using Device;
@@ -11,12 +11,11 @@
 
     public class Chromecast : IChromecast
     {
+        private readonly HashSet<IChromecastChannel> channels;
         private readonly IChromecastClient client;
         private readonly ConnectionChannel connectionChannel;
         private readonly string IpAddress;
-
-        private readonly HashSet<IChromecastChannel> channels;
-        private HeartbeatChannel heartbeatChannel;
+        private readonly HeartbeatChannel heartbeatChannel;
 
         public Chromecast(DeviceInfo deviceInfo) : this(deviceInfo?.IpAddress, deviceInfo?.FriendlyName)
         {
@@ -26,13 +25,15 @@
         {
             IpAddress = ipAddress ?? throw new ArgumentNullException(nameof(ipAddress));
             Name = name ?? throw new ArgumentNullException(nameof(name));
-            channels = new HashSet<IChromecastChannel>();
+
             client = new ChromecastClient();
             connectionChannel = new ConnectionChannel(client);
             heartbeatChannel = new HeartbeatChannel(client);
 
             client.BindChannel(connectionChannel);
             client.BindChannel(heartbeatChannel);
+
+            channels = new HashSet<IChromecastChannel> {connectionChannel};
         }
 
         public string Name { get; }
@@ -58,7 +59,8 @@
             return channels.OfType<TChannel>().FirstOrDefault();
         }
 
-        public TChannel GetOrCreateChannel<TChannel>(Func<IChromecastClient, TChannel> factory) where TChannel : IChromecastChannel
+        public TChannel GetOrCreateChannel<TChannel>(Func<IChromecastClient, TChannel> factory)
+            where TChannel : IChromecastChannel
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
 

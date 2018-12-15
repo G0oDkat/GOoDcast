@@ -11,7 +11,7 @@
 
         public static async Task<IReadOnlyCollection<DeviceInfo>> LocateDevicesAsync()
         {
-            using (var locator = new SsdpDeviceLocator {NotificationFilter = DeviceType})
+            using (var locator = new SsdpDeviceLocator { NotificationFilter = DeviceType })
             {
                 IEnumerable<DiscoveredSsdpDevice> devices =
                     await locator.SearchAsync(DeviceType, TimeSpan.FromSeconds(2));

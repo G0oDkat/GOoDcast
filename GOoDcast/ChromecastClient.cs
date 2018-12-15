@@ -4,6 +4,10 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Net;
+    using System.Net.Security;
+    using System.Net.Sockets;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
     using Channels;
@@ -12,8 +16,6 @@
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using ProtoBuf;
-    using Sockets.Plugin;
-    using Sockets.Plugin.Abstractions;
 
     public class ChromecastClient : IChromecastClient
     {
@@ -22,7 +24,8 @@
 
         private readonly Dictionary<string, IChromecastChannel> channels;
 
-        private readonly ITcpSocketClient client;
+        private readonly TcpClient client;
+        private SslStream stream;
         private readonly SemaphoreSlim mutex;
 
         private readonly ConcurrentDictionary<int, TaskCompletionSource<JObject>> pendingRequests;
@@ -32,7 +35,7 @@
 
         public ChromecastClient()
         {
-            client = new TcpSocketClient();
+            client = new TcpClient();
             mutex = new SemaphoreSlim(1, 1);
 
             channels = new Dictionary<string, IChromecastChannel>();
@@ -41,10 +44,10 @@
 
         public void Dispose()
         {
+            stream?.Dispose();
             client?.Dispose();
             receiverCancellationTokenSource?.Dispose();
         }
-
 
         public void BindChannel(IChromecastChannel channel)
         {
@@ -55,11 +58,10 @@
 
         public async Task ConnectAsync(string address)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource(Timeout))
-            {
-                await client.ConnectAsync(address, Port, true, cancellationTokenSource.Token);
-            }
-
+            await client.ConnectAsync(address, Port);
+            stream = new SslStream(client.GetStream(), false, ValidateServerCertificate, null);
+            stream.AuthenticateAsClient(address);
+            
             MessageReceiverTask = RunMessageReceiver();
         }
 
@@ -78,7 +80,7 @@
             receiverCancellationTokenSource.Dispose();
             receiverCancellationTokenSource = null;
 
-            await client.DisconnectAsync();
+            client.Close();
         }
 
         public async Task<TResponse> RequestAsync<TResponse>(string @namespace, IMessageWithId request,
@@ -88,7 +90,9 @@
             if (destinationId == null) throw new ArgumentNullException(nameof(destinationId));
             if (request == null) throw new ArgumentNullException(nameof(request));
 
-            string payload = JsonConvert.SerializeObject(request, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            string payload =
+                JsonConvert.SerializeObject(request,
+                                            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
 
             var message = new ChromecastMessage(@namespace, payload, destinationId);
 
@@ -109,8 +113,9 @@
             if (destinationId == null) throw new ArgumentNullException(nameof(destinationId));
             if (request == null) throw new ArgumentNullException(nameof(request));
 
-            string payload = JsonConvert.SerializeObject(request, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
+            string payload =
+                JsonConvert.SerializeObject(request,
+                                            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
 
             var message = new ChromecastMessage(@namespace, payload, destinationId);
 
@@ -126,7 +131,7 @@
             {
                 using (var cancellationTokenSource = new CancellationTokenSource(Timeout))
                 {
-                    await ProtoBufSerializer.SerializeWithLengthPrefixAsync(client.WriteStream, request,
+                    await ProtoBufSerializer.SerializeWithLengthPrefixAsync(stream, request,
                                                                             PrefixStyle.Fixed32BigEndian,
                                                                             cancellationTokenSource.Token);
                 }
@@ -144,7 +149,7 @@
             using (CancellationTokenSource linkedTokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token))
             {
-                return await ProtoBufSerializer.DeserializeWithLengthPrefixAsync<ChromecastMessage>(client.ReadStream,
+                return await ProtoBufSerializer.DeserializeWithLengthPrefixAsync<ChromecastMessage>(stream,
                                                                                                     PrefixStyle
                                                                                                         .Fixed32BigEndian,
                                                                                                     linkedTokenSource
@@ -174,6 +179,8 @@
             {
                 if (exception is OperationCanceledException) throw;
 
+                Debug.WriteLine(exception);
+
                 await DisconnectAsync();
             }
         }
@@ -200,6 +207,13 @@
                     await channel.OnPushMessageReceivedAsync(message);
                 }
             }
+        }
+
+
+        private static bool ValidateServerCertificate(object sender, X509Certificate certificate,
+                                                     X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return !sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable);
         }
     }
 }
