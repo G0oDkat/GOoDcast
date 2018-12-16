@@ -20,135 +20,102 @@
         {
         }
 
-        /// <summary>
-        ///     Loads a queue items
-        /// </summary>
-        /// <param name="repeatMode">queue repeat mode</param>
-        /// <param name="medias">media items</param>
-        /// <returns>media status</returns>
-        public Task QueueLoadAsync(RepeatMode repeatMode, string transportId, params MediaInformation[] medias)
+        /// <inheritdoc />
+        public Task QueueLoadAsync(string sourceId, string destinationId, RepeatMode repeatMode,
+                                   params MediaInformation[] medias)
         {
-            return QueueLoadAsync(repeatMode, medias.Select(mi => new QueueItem {Media = mi}), transportId);
+            return QueueLoadAsync(sourceId, destinationId, repeatMode, medias.Select(mi => new QueueItem {Media = mi}));
         }
 
-        /// <summary>
-        ///     Loads a queue items
-        /// </summary>
-        /// <param name="repeatMode">queue repeat mode</param>
-        /// <param name="queueItems">items to load</param>
-        /// <returns>media status</returns>
-        public Task QueueLoadAsync(RepeatMode repeatMode, string transportId, params QueueItem[] queueItems)
+        /// <inheritdoc />
+        public Task QueueLoadAsync(string sourceId, string destinationId, RepeatMode repeatMode,
+                                   params QueueItem[] queueItems)
         {
-            return QueueLoadAsync(repeatMode, queueItems, transportId);
+            return QueueLoadAsync(sourceId, destinationId, repeatMode, queueItems.AsEnumerable());
         }
 
-        /// <summary>
-        ///     Edits tracks info
-        /// </summary>
-        /// <param name="enabledTextTracks">true to enable text tracks, false otherwise</param>
-        /// <param name="language">language for the tracks that should be active</param>
-        /// <param name="activeTrackIds">track identifiers that should be active</param>
-        /// <returns>media status</returns>
-        public Task EditTracksInfoAsync(string transportId, string language = null, bool enabledTextTracks = true,
-                                        params int[] activeTrackIds)
+        /// <inheritdoc />
+        public Task EditTracksInfoAsync(string sourceId, string destinationId, string language = null,
+                                        bool enabledTextTracks = true, params int[] activeTrackIds)
         {
-            return
-                RequestAsync(new EditTracksInfoMessage {Language = language, EnableTextTracks = enabledTextTracks, ActiveTrackIds = activeTrackIds},
-                             transportId);
+            return RequestAsync(sourceId, destinationId,
+                                new EditTracksInfoMessage
+                                {
+                                    Language = language,
+                                    EnableTextTracks = enabledTextTracks,
+                                    ActiveTrackIds = activeTrackIds
+                                });
         }
 
-        /// <summary>
-        ///     Plays the media
-        /// </summary>
-        /// <param name="transportId"></param>
-        /// <returns>media status</returns>
-        public Task PlayAsync(string transportId)
+        /// <inheritdoc />
+        public Task PlayAsync(string sourceId, string destinationId)
         {
-            return RequestAsync(new PlayMessage(), transportId);
+            return RequestAsync(sourceId, destinationId, new PlayMessage());
         }
 
-        /// <summary>
-        ///     Pauses the media
-        /// </summary>
-        /// <param name="transportId"></param>
-        /// <returns>media status</returns>
-        public Task PauseAsync(string transportId)
+        /// <inheritdoc />
+        public Task PauseAsync(string sourceId, string destinationId)
         {
-            return RequestAsync(new PauseMessage(), transportId);
+            return RequestAsync(sourceId, destinationId, new PauseMessage());
         }
 
-        /// <summary>
-        ///     Stops the media
-        /// </summary>
-        /// <param name="transportId"></param>
-        /// <returns>media status</returns>
-        public Task StopAsync(string transportId)
+        /// <inheritdoc />
+        public Task StopAsync(string sourceId, string destinationId)
         {
-            return RequestAsync(new StopMessage(), transportId);
+            return RequestAsync(sourceId, destinationId, new StopMessage());
         }
 
-        /// <summary>
-        ///     Seeks to the specified time
-        /// </summary>
-        /// <param name="seconds">time in seconds</param>
-        /// <param name="transportId"></param>
-        /// <returns>media status</returns>
-        public Task SeekAsync(double seconds, string transportId)
+        /// <inheritdoc />
+        public Task SeekAsync(string sourceId, string destinationId, double seconds)
         {
-            return RequestAsync(new SeekMessage {CurrentTime = seconds}, transportId);
+            return RequestAsync(sourceId, destinationId, new SeekMessage {CurrentTime = seconds});
         }
 
-        /// <summary>
-        ///     Loads a media
-        /// </summary>
-        /// <param name="media">media to load</param>
-        /// <param name="autoPlay">true to play the media directly, false otherwise</param>
-        /// <param name="activeTrackIds">track identifiers that should be active</param>
-        /// <returns>media status</returns>
-        public Task LoadAsync(MediaInformation media, string transportId, string sessionId, bool autoPlay = true,
-                              int[] activeTrackIds = null)
+        public Task NextAsync(string sourceId, string destinationId)
         {
-            return
-                RequestAsync(new LoadMessage {Media = media, AutoPlay = autoPlay, /*ActiveTrackIds = activeTrackIds,*/ SessionId = sessionId},
-                             transportId);
+            return RequestAsync(sourceId, destinationId, new NextMessage());
         }
 
-        private Task RequestAsync(MediaSessionMessage message, string transportId, bool mediaSessionIdRequired = true)
+        public Task PreviousAsync(string sourceId, string destinationId)
+        {
+            return RequestAsync(sourceId, destinationId, new PreviousMessage());
+        }
+
+        /// <inheritdoc />
+        public Task LoadAsync(string sourceId, string destinationId, MediaInformation media, string sessionId,
+                              bool autoPlay = true, int[] activeTrackIds = null)
+        {
+            return RequestAsync(sourceId, destinationId,
+                                new LoadMessage
+                                {
+                                    Media = media,
+                                    AutoPlay = autoPlay,
+                                    ActiveTrackIds = activeTrackIds,
+                                    SessionId = sessionId
+                                });
+        }
+
+        private Task RequestAsync(string sourceId, string destinationId, MediaSessionMessage message,
+                                  bool mediaSessionIdRequired = true)
         {
             long? mediaSessionId = Status?.First().MediaSessionId;
             if (mediaSessionIdRequired && mediaSessionId == null) throw new ArgumentNullException("MediaSessionId");
 
             message.MediaSessionId = mediaSessionId;
-            return RequestAsync((IMessageWithId) message, transportId);
+            return RequestAsync(sourceId, destinationId, (IMessageWithId) message);
         }
 
-        private async Task RequestAsync(IMessageWithId message, string transportId)
+        public Task GetStatusAsync(string sourceId, string destinationId)
         {
-            try
-            {
-                Status = (await RequestAsync<MediaStatusMessage>(message, transportId)).Status;
-            }
-            catch (Exception)
-            {
-                Status = null;
-                throw;
-            }
+            return RequestAsync(sourceId, destinationId,
+                                new GetStatusMessage {MediaSessionId = Status?.First().MediaSessionId}, false);
         }
 
-        /// <summary>
-        ///     Retrieves the status
-        /// </summary>
-        /// <param name="transportId"></param>
-        /// <returns>the status</returns>
-        public Task GetStatusAsync(string transportId)
+        private Task QueueLoadAsync(string sourceId, string destinationId, RepeatMode repeatMode,
+                                    IEnumerable<QueueItem> queueItems)
         {
-            return RequestAsync(new GetStatusMessage {MediaSessionId = Status?.First().MediaSessionId}, transportId,
-                                false);
-        }
-
-        private Task QueueLoadAsync(RepeatMode repeatMode, IEnumerable<QueueItem> queueItems, string transportId)
-        {
-            return RequestAsync(new QueueLoadMessage {RepeatMode = repeatMode, Items = queueItems}, transportId);
+            return RequestAsync(sourceId, destinationId,
+                                new QueueLoadMessage {RepeatMode = repeatMode, Items = queueItems});
         }
     }
 }

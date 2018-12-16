@@ -13,60 +13,77 @@
         ///     Loads a media
         /// </summary>
         /// <param name="media">media to load</param>
-        /// <param name="transportId"></param>
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
         /// <param name="autoPlay">true to play the media directly, false otherwise</param>
         /// <param name="activeTrackIds">tracks identifiers that should be active</param>
-        Task LoadAsync(MediaInformation media, string transportId, string sessionId, bool autoPlay = true, params int[] activeTrackIds);
+        Task LoadAsync(string sourceId, string destinationId, MediaInformation media, string sessionId, bool autoPlay = true, params int[] activeTrackIds);
 
         /// <summary>
         ///     Loads a queue items
         /// </summary>
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
         /// <param name="repeatMode">queue repeat mode</param>
-        /// <param name="transportId"></param>
         /// <param name="medias">media items</param>
-        Task QueueLoadAsync(RepeatMode repeatMode, string transportId, params MediaInformation[] medias);
+        Task QueueLoadAsync(string sourceId, string destinationId, RepeatMode repeatMode, params MediaInformation[] medias);
 
         /// <summary>
         ///     Loads a queue items
         /// </summary>
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
         /// <param name="repeatMode">queue repeat mode</param>
-        /// <param name="transportId"></param>
         /// <param name="queueItems">items to load</param>
-        Task QueueLoadAsync(RepeatMode repeatMode, string transportId, params QueueItem[] queueItems);
+        Task QueueLoadAsync(string sourceId, string destinationId, RepeatMode repeatMode, params QueueItem[] queueItems);
 
         /// <summary>
         ///     Edits tracks info
         /// </summary>
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
         /// <param name="enabledTextTracks">true to enable text tracks, false otherwise</param>
-        /// <param name="transportId"></param>
         /// <param name="language">language for the tracks that should be active</param>
         /// <param name="activeTrackIds">track identifiers that should be active</param>
-        Task EditTracksInfoAsync(string transportId, string language = null, bool enabledTextTracks = true,
+        Task EditTracksInfoAsync(string sourceId, string destinationId, string language = null, bool enabledTextTracks = true,
                                  params int[] activeTrackIds);
 
         /// <summary>
         ///     Plays the media
         /// </summary>
-        /// <param name="transportId"></param>
-        Task PlayAsync(string transportId);
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
+        Task PlayAsync(string sourceId, string destinationId);
 
         /// <summary>
         ///     Pauses the media
         /// </summary>
-        /// <param name="transportId"></param>
-        Task PauseAsync(string transportId);
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
+        Task PauseAsync(string sourceId, string destinationId);
 
         /// <summary>
         ///     Stops the media
         /// </summary>
-        /// <param name="transportId"></param>
-        Task StopAsync(string transportId);
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
+        Task StopAsync(string sourceId, string destinationId);
 
         /// <summary>
         ///     Seeks to the specified time
         /// </summary>
+
+        /// <param name="sourceId"></param>
+        /// <param name="destinationId"></param>
         /// <param name="seconds">time in seconds</param>
-        /// <param name="transportId"></param>
-        Task SeekAsync(double seconds, string transportId);
+        Task SeekAsync(string sourceId, string destinationId, double seconds);
+
+
+        Task NextAsync(string sourceId, string destinationId);
+
+
+        Task PreviousAsync(string sourceId, string destinationId);
+
+
     }
 }

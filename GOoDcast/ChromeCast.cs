@@ -42,10 +42,12 @@
 
         public string Name { get; }
 
+        public bool IsConnected => client.IsConnected;
+
         public async Task ConnectAsync()
         {
             await client.ConnectAsync(IpAddress);
-            await connectionChannel.ConnectAsync(DefaultIdentifiers.DestinationId);
+            await connectionChannel.ConnectAsync(DefaultIdentifiers.SourceId, DefaultIdentifiers.DestinationId);
         }
 
         public Task DisconnectAsync()

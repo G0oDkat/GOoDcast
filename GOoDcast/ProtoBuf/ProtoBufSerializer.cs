@@ -32,7 +32,7 @@
                     length = await ReadBase128LengthAsync(stream, cancellationToken);
                     break;
                 case PrefixStyle.Fixed32:
-                    length = await ReadFixed32LengthAsync(stream, cancellationToken);
+                    length = await ReadFixed32LittleEndianLengthAsync(stream, cancellationToken);
                     break;
 
                 case PrefixStyle.Fixed32BigEndian:
@@ -65,16 +65,23 @@
             return length;
         }
 
-        private static async Task<int> ReadFixed32LengthAsync(Stream stream, CancellationToken cancellationToken)
+        private static async Task<int> ReadFixed32LittleEndianLengthAsync(
+            Stream stream, CancellationToken cancellationToken)
         {
             byte[] sizeBuffer = await stream.ReadFixedAsync(4, cancellationToken);
+
+            if (!BitConverter.IsLittleEndian) Array.Reverse(sizeBuffer);
+
             return BitConverter.ToInt32(sizeBuffer, 0);
         }
 
-        private static async Task<int> ReadFixed32BigEndianLengthAsync(Stream stream, CancellationToken cancellationToken)
+        private static async Task<int> ReadFixed32BigEndianLengthAsync(Stream stream,
+                                                                       CancellationToken cancellationToken)
         {
             byte[] sizeBuffer = await stream.ReadFixedAsync(4, cancellationToken);
-            Array.Reverse(sizeBuffer);
+
+            if (BitConverter.IsLittleEndian) Array.Reverse(sizeBuffer);
+
             return BitConverter.ToInt32(sizeBuffer, 0);
         }
     }

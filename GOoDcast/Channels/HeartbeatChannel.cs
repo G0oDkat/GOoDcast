@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
     using Messages.Hearbeat;
     using Miscellaneous;
-    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
 
     public class HeartbeatChannel : ChromecastChannel, IHeartbeatChannel
     {
@@ -11,11 +11,11 @@
         {
         }
 
-        public override async Task OnPushMessageReceivedAsync(JObject rawMessage)
+        public override async Task OnMessageReceivedAsync(string sourceId, string destinationId, string payload)
         {
-            var message = rawMessage.ToObject<PingMessage>();
+            var message = JsonConvert.DeserializeObject<PingMessage>(payload);
 
-            if (message != null) await SendAsync(new PongMessage(), DefaultIdentifiers.DestinationId);
+            if (message != null) await SendAsync(DefaultIdentifiers.SourceId, sourceId, new PongMessage());
         }
     }
 }

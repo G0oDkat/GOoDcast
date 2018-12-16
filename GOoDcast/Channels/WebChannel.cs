@@ -1,11 +1,7 @@
 namespace GOoDcast.Channels
 {
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
     using Messages.Web;
-    using Models;
-    using Newtonsoft.Json.Linq;
 
     public class WebChannel : ChromecastChannel, IWebChannel
     {
@@ -13,14 +9,14 @@ namespace GOoDcast.Channels
         {
         }
 
-        public Task LoadUrl(string applicationId, string destinationId, string url)
+        public Task LoadUrl(string sourceId, string destinationId, string applicationId, string url)
         {
             var message = new IframeMessage(applicationId, url);
-           
-            return SendAsync(message,destinationId);
+
+            return SendAsync(sourceId, destinationId, message);
         }
 
-        public override Task OnPushMessageReceivedAsync(JObject rawMessage)
+        public override Task OnMessageReceivedAsync(string sourceId, string destinationId, string payload)
         {
             return Task.CompletedTask;
         }

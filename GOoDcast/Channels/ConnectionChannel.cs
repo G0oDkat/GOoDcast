@@ -14,13 +14,14 @@
         {
         }
 
-        public async Task ConnectAsync(string destinationId)
+        public Task ConnectAsync(string sourceId, string destinationId)
         {
-            await SendAsync(new ConnectMessage(), destinationId);
+            return SendAsync(sourceId, destinationId, new ConnectMessage());
         }
 
-        public override Task OnPushMessageReceivedAsync(JObject rawMessage)
+        public override Task OnMessageReceivedAsync(string sourceId, string destinationId, string payload)
         {
+
             //TODO: handle close message
 
             return Task.CompletedTask;

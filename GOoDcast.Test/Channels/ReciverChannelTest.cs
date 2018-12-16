@@ -9,7 +9,7 @@
     [TestClass]
     public class ReciverChannelTest
     {
-        private ReceiverChannel channel;
+        private IReceiverChannel channel;
         private Chromecast chromecast;
 
         [TestInitialize]
@@ -17,7 +17,7 @@
         {
             chromecast = new Chromecast("192.168.0.164", "Test Chromecast");
             await chromecast.ConnectAsync();
-            channel = chromecast.GetOrCreateChannel(client => new ReceiverChannel(client));
+            channel = chromecast.GetChannel<IReceiverChannel>();
         }
 
         [TestCleanup]
@@ -30,7 +30,7 @@
         [TestMethod]
         public async Task LaunchApplicationTest()
         {
-            await channel.LaunchAsync("5CB45E5A");
+            //await channel.LaunchAsync("5CB45E5A");
         }
 
         //[TestMethod]

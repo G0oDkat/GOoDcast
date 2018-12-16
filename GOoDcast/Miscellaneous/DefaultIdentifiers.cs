@@ -8,7 +8,7 @@
         /// <summary>
         /// Default sender identifier
         /// </summary>
-        public const string SenderId = "sender-0";
+        public const string SourceId = "sender-0";
 
         /// <summary>
         /// Default destination identifier

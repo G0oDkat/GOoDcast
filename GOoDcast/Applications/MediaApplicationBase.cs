@@ -3,6 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Channels;
+    using Miscellaneous;
     using Models.Media;
 
     public abstract class MediaApplicationBase : ApplicationBase
@@ -20,58 +21,68 @@
         {
             if (mediaInformation == null) throw new ArgumentNullException(nameof(mediaInformation));
 
-            return MediaChannel.LoadAsync(mediaInformation, TransportId, SessionId);
+            return MediaChannel.LoadAsync(DefaultIdentifiers.SourceId, TransportId, mediaInformation, SessionId);
         }
 
 
         public virtual Task PlayAsync()
         {
-            return MediaChannel.PlayAsync(TransportId);
+            return MediaChannel.PlayAsync(DefaultIdentifiers.SourceId, TransportId);
         }
 
         public virtual Task PauseAsync()
         {
-            return MediaChannel.PauseAsync(TransportId);
+            return MediaChannel.PauseAsync(DefaultIdentifiers.SourceId, TransportId);
         }
 
         public virtual Task SeekAsync(double seconds)
         {
-            return MediaChannel.SeekAsync(seconds, TransportId);
+            return MediaChannel.SeekAsync(DefaultIdentifiers.SourceId, TransportId, seconds);
         }
 
         public virtual Task StopAsync()
         {
-            return MediaChannel.StopAsync(TransportId);
+            return MediaChannel.StopAsync(DefaultIdentifiers.SourceId, TransportId);
         }
 
-        //public virtual async Task NextAsync()
-        //{
-        //    await MediaChannel.NextAsync(TransportId);
-        //}
+        public virtual async Task NextAsync()
+        {
+            await MediaChannel.NextAsync(DefaultIdentifiers.SourceId, TransportId);
+        }
 
-        //public virtual async Task PreviousAsync()
-        //{
-        //    await MediaChannel.PreviousAsync(TransportId);
-        //}
+        public virtual async Task PreviousAsync()
+        {
+            await MediaChannel.PreviousAsync(DefaultIdentifiers.SourceId, TransportId);
+        }
 
-        //public async Task VolumeUpAsync(double amount = 0.05)
-        //{
-        //    await ReceiverChannel.IncreaseVolumeAsync(amount);
-        //}
+        public async Task VolumeUpAsync()
+        {
+            await ReceiverChannel.IncreaseVolumeAsync(DefaultIdentifiers.SourceId, TransportId);
+        }
 
-        //public async Task VolumeDownAsync(double amount = 0.05)
-        //{
-        //    await ReceiverChannel.DecreaseVolumeAsync(amount);
-        //}
+        public async Task VolumeUpAsync(double amount)
+        {
+            await ReceiverChannel.IncreaseVolumeAsync(DefaultIdentifiers.SourceId, TransportId,amount);
+        }
+
+        public async Task VolumeDownAsync()
+        {
+            await ReceiverChannel.DecreaseVolumeAsync(DefaultIdentifiers.SourceId, TransportId);
+        }
+
+        public async Task VolumeDownAsync(double amount)
+        {
+            await ReceiverChannel.DecreaseVolumeAsync(DefaultIdentifiers.SourceId, TransportId, amount);
+        }
 
         public async Task SetIsMutedAsync(bool muted)
         {
-            await ReceiverChannel.SetIsMutedAsync(muted);
+            await ReceiverChannel.SetIsMutedAsync(DefaultIdentifiers.SourceId, TransportId, muted);
         }
 
         public async Task SetVolumeAsync(float volume)
         {
-            await ReceiverChannel.SetVolumeAsync(volume);
+            await ReceiverChannel.SetVolumeAsync(DefaultIdentifiers.SourceId, TransportId, volume);
         }
     }
 }

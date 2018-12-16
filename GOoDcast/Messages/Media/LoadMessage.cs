@@ -29,8 +29,8 @@
         /// Gets or sets the identifiers of the tracks that should be active. 
         /// </summary>
         /// <remarks>if the array is not provided, the default tracks will be active</remarks>
-        //[DataMember(Name = "activeTrackIds")]
-        //public IEnumerable<int> ActiveTrackIds { get; set; }
-        //TODO: fix empty collection
+        [DataMember(Name = "activeTrackIds")]
+        public IEnumerable<int> ActiveTrackIds { get; set; }
+
     }
 }

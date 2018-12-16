@@ -4,11 +4,13 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Channels;
+    using Miscellaneous;
     using Models.Receiver;
 
     public abstract class ApplicationBase
     {
-        protected ApplicationBase(string applicationId, IConnectionChannel connectionChannel, IReceiverChannel receiverChannel)
+        protected ApplicationBase(string applicationId, IConnectionChannel connectionChannel,
+                                  IReceiverChannel receiverChannel)
         {
             ApplicationId = applicationId ?? throw new ArgumentNullException(nameof(applicationId));
             ConnectionChannel = connectionChannel ?? throw new ArgumentNullException(nameof(connectionChannel));
@@ -18,7 +20,7 @@
         }
 
         protected string ApplicationId { get; }
-      
+
         protected string TransportId { get; private set; }
 
         protected string SessionId { get; private set; }
@@ -46,8 +48,9 @@
 
         public async Task LaunchApplicationAsync()
         {
-            await ReceiverChannel.LaunchAsync(ApplicationId);
-            await ConnectionChannel.ConnectAsync(TransportId);
+            await ReceiverChannel.LaunchAsync(DefaultIdentifiers.SourceId, DefaultIdentifiers.DestinationId,
+                                              ApplicationId);
+            await ConnectionChannel.ConnectAsync(DefaultIdentifiers.SourceId, TransportId);
         }
 
         public async Task StopApplicationAsync()
@@ -56,7 +59,7 @@
 
             if (application == null) throw new InvalidOperationException("Application has no active session.");
 
-            await ReceiverChannel.StopAsync(application);
+            await ReceiverChannel.StopAsync(DefaultIdentifiers.SourceId, DefaultIdentifiers.DestinationId, application);
         }
     }
 }

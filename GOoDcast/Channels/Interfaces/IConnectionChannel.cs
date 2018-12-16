@@ -4,6 +4,6 @@ namespace GOoDcast.Channels
 {
     public interface IConnectionChannel : IChromecastChannel
     {
-        Task ConnectAsync(string destinationId);
+        Task ConnectAsync(string sourceId, string destinationId);
     }
 }

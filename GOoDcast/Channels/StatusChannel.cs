@@ -20,8 +20,8 @@
         ///     Initialization
         /// </summary>
         /// <param name="client">client</param>
-        /// <param name="ns">namespace</param>
-        protected StatusChannel(IChromecastClient client, string ns) : base(client, ns)
+        /// <param name="namespace">namespace</param>
+        protected StatusChannel(IChromecastClient client, string @namespace) : base(client, @namespace)
         {
         }
 
@@ -47,19 +47,14 @@
         }
 
 
-        protected async Task<TStatus> RequestAsync(IMessageWithId request, string destinationId)
+        protected async Task<TStatus> RequestAsync(string sourceId, string destinationId, IMessageWithId message)
         {
-            return Status = (await RequestAsync<TStatusMessage>(request, destinationId)).Status;
+            return Status = (await RequestAsync<TStatusMessage>(sourceId, destinationId, message)).Status;
         }
 
-
-        /// <summary>
-        ///     Called when a message for this channel is received
-        /// </summary>
-        /// <param name="message">message to process</param>
-        public override Task OnPushMessageReceivedAsync(JObject rawMessage)
+        protected override Task OnPushMessageReceivedAsync(string sourceId, string destinationId, JObject messageObject)
         {
-            var message = rawMessage.ToObject<TStatusMessage>();
+            var message = messageObject.ToObject<TStatusMessage>();
 
             if (message != null) Status = message.Status;
 

@@ -1,29 +1,21 @@
-﻿using System.Threading.Tasks;
-
-namespace GOoDcast
+﻿namespace GOoDcast
 {
     using System;
-    using System.Net;
-    using System.Threading;
+    using System.Threading.Tasks;
     using Channels;
-    using Messages;
-    using Models;
-    using ProtoBuf;
 
     public interface IChromecastClient : IDisposable
     {
+        bool IsConnected { get; }
+
         Task ConnectAsync(string address);
 
         Task DisconnectAsync();
 
         void BindChannel(IChromecastChannel channel);
 
+        Task SendAsync(string @namespace, string sourceId, string destinationId, string payload);
 
-        Task SendAsync(string @namespace, IMessage request, string destinationId);
-
-        
-        Task<TResponse> RequestAsync<TResponse>(string @namespace, IMessageWithId request,string destinationId) where TResponse : IMessageWithId; 
-
-        
+        Task SendAsync(string @namespace, string sourceId, string destinationId, byte[] payload);
     }
 }

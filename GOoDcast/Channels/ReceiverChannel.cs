@@ -1,10 +1,10 @@
 ﻿namespace GOoDcast.Channels
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Messages.Receiver;
-    using Miscellaneous;
     using Models;
     using Models.Receiver;
 
@@ -25,29 +25,41 @@
         /// </summary>
         /// <param name="applicationId">application identifier</param>
         /// <returns>receiver status</returns>
-        public Task<ReceiverStatus> LaunchAsync(string applicationId)
+        public Task<ReceiverStatus> LaunchAsync(string sourceId, string destinationId, string applicationId)
         {
-            return RequestAsync(new LaunchMessage {ApplicationId = applicationId}, DefaultIdentifiers.DestinationId);
+            return RequestAsync(sourceId, destinationId, new LaunchMessage {ApplicationId = applicationId});
         }
 
-        /// <summary>
-        ///     Sets the volume
-        /// </summary>
-        /// <param name="level">volume level (0.0 to 1.0)</param>
-        /// <returns>receiver status</returns>
-        public Task<ReceiverStatus> SetVolumeAsync(float level)
+        public Task<ReceiverStatus> SetVolumeAsync(string sourceId, string destinationId, float level)
         {
-            return SetVolumeAsync(level, null);
+            return SetVolumeAsync(sourceId, destinationId, level, null);
         }
 
-        /// <summary>
-        ///     Sets a value indicating whether the audio should be muted
-        /// </summary>
-        /// <param name="isMuted">true if audio should be muted; otherwise, false</param>
-        /// <returns>receiver status</returns>
-        public Task<ReceiverStatus> SetIsMutedAsync(bool isMuted)
+        public Task<ReceiverStatus> IncreaseVolumeAsync(string sourceId, string destinationId)
         {
-            return SetVolumeAsync(null, isMuted);
+            return IncreaseVolumeAsync(sourceId, destinationId, Status.Volume.StepInterval);
+        }
+
+        public Task<ReceiverStatus> IncreaseVolumeAsync(string sourceId, string destinationId, double amount)
+        {
+            double level = Math.Min(Status.Volume.Level ?? 0.5 + amount, 1f);
+            return SetVolumeAsync(sourceId, destinationId, (float)level, null);
+        }
+
+        public Task<ReceiverStatus> DecreaseVolumeAsync(string sourceId, string destinationId)
+        {
+            return DecreaseVolumeAsync(sourceId, destinationId, Status.Volume.StepInterval);
+        }
+
+        public Task<ReceiverStatus> DecreaseVolumeAsync(string sourceId, string destinationId, double amount)
+        {
+            double level = Math.Max(Status.Volume.Level ?? 0.5 - amount, 0);
+            return SetVolumeAsync(sourceId, destinationId, (float)level, null);
+        }
+
+        public Task<ReceiverStatus> SetIsMutedAsync(string sourceId, string destinationId, bool isMuted)
+        {
+            return SetVolumeAsync(sourceId, destinationId, null, isMuted);
         }
 
         /// <summary>
@@ -77,46 +89,48 @@
         /// </summary>
         /// <param name="applications">applications to stop</param>
         /// <returns>ReceiverStatus</returns>
-        public async Task<ReceiverStatus> StopAsync(params Application[] applications)
+        public async Task<ReceiverStatus> StopAsync(string sourceId, string destinationId,
+                                                    params Application[] applications)
         {
             IEnumerable<Application> apps = applications;
             if (apps == null || !apps.Any())
             {
-                apps = (await CheckStatusAsync()).Applications;
+                apps = (await CheckStatusAsync(sourceId, destinationId)).Applications;
                 if (apps == null || !apps.Any()) return null;
             }
 
             ReceiverStatusMessage receiverStatusMessage = null;
             foreach (Application application in apps)
                 receiverStatusMessage =
-                    await RequestAsync<ReceiverStatusMessage>(new StopMessage {SessionId = application.SessionId},
-                                                              DefaultIdentifiers.DestinationId);
+                    await RequestAsync<ReceiverStatusMessage>(sourceId, destinationId,
+                                                              new StopMessage {SessionId = application.SessionId});
 
             return Status = receiverStatusMessage.Status;
         }
 
-        private Task<ReceiverStatus> SetVolumeAsync(float? level, bool? isMuted, float stepInterval = 0.05f)
+        private Task<ReceiverStatus> SetVolumeAsync(string sourceId, string destinationId, float? level, bool? isMuted,
+                                                    float stepInterval = 0.05f)
         {
             var message = new SetVolumeMessage
             {
                 Volume = new Volume {Level = level, IsMuted = isMuted, StepInterval = stepInterval}
             };
 
-            return RequestAsync(message, DefaultIdentifiers.DestinationId);
+            return RequestAsync(sourceId, destinationId, message);
         }
 
-        private async Task<ReceiverStatus> CheckStatusAsync()
+        private async Task<ReceiverStatus> CheckStatusAsync(string sourceId, string destinationId)
         {
-            return Status ?? (Status = await GetStatusAsync());
+            return Status ?? (Status = await GetStatusAsync(sourceId, destinationId));
         }
 
         /// <summary>
         ///     Retrieves the status
         /// </summary>
         /// <returns>the status</returns>
-        private Task<ReceiverStatus> GetStatusAsync()
+        private Task<ReceiverStatus> GetStatusAsync(string sourceId, string destinationId)
         {
-            return RequestAsync(new GetStatusMessage(), DefaultIdentifiers.DestinationId);
+            return RequestAsync(sourceId, destinationId, new GetStatusMessage());
         }
     }
 }

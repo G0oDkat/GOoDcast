@@ -1,10 +1,8 @@
 ﻿namespace GOoDcast
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Net;
     using System.Net.Security;
     using System.Net.Sockets;
     using System.Security.Cryptography.X509Certificates;
@@ -12,35 +10,31 @@
     using System.Threading.Tasks;
     using Channels;
     using global::ProtoBuf;
-    using Messages;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Nito.AsyncEx;
     using ProtoBuf;
 
-    public class ChromecastClient : IChromecastClient
+    internal class ChromecastClient : IChromecastClient
     {
         private const int Port = 8009;
         private const int Timeout = 30000;
 
         private readonly Dictionary<string, IChromecastChannel> channels;
+        private readonly AsyncLock mutex;
 
-        private readonly TcpClient client;
-        private SslStream stream;
-        private readonly SemaphoreSlim mutex;
+        private TcpClient client;
 
-        private readonly ConcurrentDictionary<int, TaskCompletionSource<JObject>> pendingRequests;
-        private Task MessageReceiverTask;
+        private Task messageReceiverTask;
 
         private CancellationTokenSource receiverCancellationTokenSource;
+        private SslStream stream;
 
         public ChromecastClient()
         {
-            client = new TcpClient();
-            mutex = new SemaphoreSlim(1, 1);
-
+            mutex = new AsyncLock();
             channels = new Dictionary<string, IChromecastChannel>();
-            pendingRequests = new ConcurrentDictionary<int, TaskCompletionSource<JObject>>();
         }
+
+        public bool IsConnected { get; private set; }
 
         public void Dispose()
         {
@@ -56,162 +50,136 @@
             channels.Add(channel.Namespace, channel);
         }
 
+        public Task SendAsync(string @namespace, string sourceId, string destinationId, string payload)
+        {
+            ThrowWhenDisconnected();
+            return SendAsync(new ChromecastMessage(@namespace, sourceId, destinationId, payload));
+        }
+
+        public Task SendAsync(string @namespace, string sourceId, string destinationId, byte[] payload)
+        {
+            ThrowWhenDisconnected();
+            return SendAsync(new ChromecastMessage(@namespace, sourceId, destinationId, payload));
+        }
+
         public async Task ConnectAsync(string address)
         {
+            ThrowWhenConnected();
+
+            client = new TcpClient();
             await client.ConnectAsync(address, Port);
             stream = new SslStream(client.GetStream(), false, ValidateServerCertificate, null);
             stream.AuthenticateAsClient(address);
-            
-            MessageReceiverTask = RunMessageReceiver();
+
+            Task _ = RunMessageReceiver();
+
+            IsConnected = true;
         }
 
         public async Task DisconnectAsync()
         {
+            ThrowWhenDisconnected();
+
             receiverCancellationTokenSource.Cancel();
 
             try
             {
-                await MessageReceiverTask;
+                await messageReceiverTask;
             }
             catch (OperationCanceledException)
             {
             }
 
-            receiverCancellationTokenSource.Dispose();
-            receiverCancellationTokenSource = null;
-
             client.Close();
+            client = null;
+            IsConnected = false;
         }
 
-        public async Task<TResponse> RequestAsync<TResponse>(string @namespace, IMessageWithId request,
-                                                             string destinationId) where TResponse : IMessageWithId
+        private void ThrowWhenDisconnected()
         {
-            if (@namespace == null) throw new ArgumentNullException(nameof(@namespace));
-            if (destinationId == null) throw new ArgumentNullException(nameof(destinationId));
-            if (request == null) throw new ArgumentNullException(nameof(request));
-
-            string payload =
-                JsonConvert.SerializeObject(request,
-                                            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
-
-            var message = new ChromecastMessage(@namespace, payload, destinationId);
-
-            var completionSource = new TaskCompletionSource<JObject>();
-
-            if (!pendingRequests.TryAdd(request.RequestId, completionSource))
-                throw new
-                    InvalidOperationException($"There already exists a pending request with this ID {request.RequestId}");
-
-            await SendAsyncInternal(message);
-
-            return (await completionSource.Task).ToObject<TResponse>();
+            if (!IsConnected) throw new InvalidOperationException("ChromecastClient is not connected.");
         }
 
-        public async Task SendAsync(string @namespace, IMessage request, string destinationId)
+        private void ThrowWhenConnected()
         {
-            if (@namespace == null) throw new ArgumentNullException(nameof(@namespace));
-            if (destinationId == null) throw new ArgumentNullException(nameof(destinationId));
-            if (request == null) throw new ArgumentNullException(nameof(request));
-
-            string payload =
-                JsonConvert.SerializeObject(request,
-                                            new JsonSerializerSettings {NullValueHandling = NullValueHandling.Ignore});
-
-            var message = new ChromecastMessage(@namespace, payload, destinationId);
-
-            await SendAsyncInternal(message);
+            if (IsConnected) throw new InvalidOperationException("ChromecastClient is already connected.");
         }
 
-        private async Task SendAsyncInternal(ChromecastMessage request)
+        private async Task SendAsync(ChromecastMessage message,
+                                     CancellationToken cancellationToken = default(CancellationToken))
         {
-            Debug.WriteLine("S {0}", request);
+            Debug.WriteLine("S {0}", message);
 
-            await mutex.WaitAsync();
-            try
+            using (await mutex.LockAsync())
             {
-                using (var cancellationTokenSource = new CancellationTokenSource(Timeout))
-                {
-                    await ProtoBufSerializer.SerializeWithLengthPrefixAsync(stream, request,
-                                                                            PrefixStyle.Fixed32BigEndian,
-                                                                            cancellationTokenSource.Token);
-                }
-            }
-            finally
-            {
-                mutex.Release();
+                await ProtoBufSerializer.SerializeWithLengthPrefixAsync(stream, message, PrefixStyle.Fixed32BigEndian,
+                                                                        cancellationToken);
             }
         }
 
         private async Task<ChromecastMessage> ReciveAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var timeoutTokenSource = new CancellationTokenSource(Timeout))
-            using (CancellationTokenSource linkedTokenSource =
-                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutTokenSource.Token))
-            {
-                return await ProtoBufSerializer.DeserializeWithLengthPrefixAsync<ChromecastMessage>(stream,
-                                                                                                    PrefixStyle
-                                                                                                        .Fixed32BigEndian,
-                                                                                                    linkedTokenSource
-                                                                                                        .Token);
-            }
+            return await ProtoBufSerializer.DeserializeWithLengthPrefixAsync<ChromecastMessage>(stream,
+                                                                                                PrefixStyle
+                                                                                                    .Fixed32BigEndian,
+                                                                                                cancellationToken);
         }
 
-        private Task RunMessageReceiver()
+        private async Task RunMessageReceiver()
         {
-            receiverCancellationTokenSource = new CancellationTokenSource();
+            using (receiverCancellationTokenSource = new CancellationTokenSource())
+            {
+                try
+                {
+                    messageReceiverTask = Task.Run(ReceiveMessages);
+                    await messageReceiverTask;
+                }
+                catch (Exception exception)
+                {
+                    if (exception is OperationCanceledException) throw;
 
-            return Task.Run(ReceiveMessages);
+                    Debug.WriteLine(exception);
+
+                    await DisconnectAsync();
+                }
+            }
+
+            receiverCancellationTokenSource = null;
         }
 
         private async Task ReceiveMessages()
         {
             CancellationToken cancellationToken = receiverCancellationTokenSource.Token;
 
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                    await ProcessMessage(await ReciveAsync(cancellationToken));
+            while (!cancellationToken.IsCancellationRequested)
+                await HandleMessage(await ReciveAsync(cancellationToken));
 
-                throw new OperationCanceledException();
-            }
-            catch (Exception exception)
-            {
-                if (exception is OperationCanceledException) throw;
-
-                Debug.WriteLine(exception);
-
-                await DisconnectAsync();
-            }
+            throw new OperationCanceledException();
         }
 
-        private async Task ProcessMessage(ChromecastMessage castMessage)
+        private Task HandleMessage(ChromecastMessage castMessage)
         {
-            string payload = castMessage.GetPayloadByType();
-
             Debug.WriteLine("R {0}", castMessage);
 
             if (channels.TryGetValue(castMessage.Namespace, out IChromecastChannel channel))
-            {
-                JObject message = JObject.Parse(payload);
-
-                if (message.TryGetValue("requestId", out JToken value))
+                switch (castMessage.PayloadType)
                 {
-                    int requestId = value.Value<int>();
+                    case PayloadType.String:
+                        return channel.OnMessageReceivedAsync(castMessage.SourceId, castMessage.DestinationId,
+                                                              castMessage.PayloadUtf8);
+                    case PayloadType.Binary:
+                        return channel.OnMessageReceivedAsync(castMessage.SourceId, castMessage.DestinationId,
+                                                              castMessage.PayloadBinary);
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
-                    if (pendingRequests.TryRemove(requestId, out TaskCompletionSource<JObject> taskCompletionSource))
-                        taskCompletionSource.TrySetResult(message);
-                }
-                else
-                {
-                    await channel.OnPushMessageReceivedAsync(message);
-                }
-            }
+            return Task.CompletedTask;
         }
 
-
-        private static bool ValidateServerCertificate(object sender, X509Certificate certificate,
-                                                     X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain,
+                                                      SslPolicyErrors sslPolicyErrors)
         {
             return !sslPolicyErrors.HasFlag(SslPolicyErrors.RemoteCertificateNotAvailable);
         }

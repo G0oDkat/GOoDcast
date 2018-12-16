@@ -1,25 +1,35 @@
 ﻿namespace GOoDcast.ProtoBuf
 {
     using System;
-    using System.Text;
     using global::ProtoBuf;
-    using Newtonsoft.Json;
 
     [ProtoContract]
-    public class ChromecastMessage
+    internal class ChromecastMessage
     {
         public ChromecastMessage()
         {
         }
 
-        public ChromecastMessage(string @namespace, string payload, string destinationId = "receiver-0")
+        private ChromecastMessage(string @namespace, string sourceId, string destinationId)
         {
             ProtocolVersion = ProtoBuf.ProtocolVersion.Castv210;
-            SourceId = "sender-0";
-            DestinationId = destinationId ?? throw new ArgumentNullException(nameof(destinationId));
             Namespace = @namespace ?? throw new ArgumentNullException(nameof(@namespace));
+            SourceId = sourceId ?? throw new ArgumentNullException(nameof(sourceId));
+            DestinationId = destinationId ?? throw new ArgumentNullException(nameof(destinationId));
+        }
+
+        public ChromecastMessage(string @namespace, string sourceId, string destinationId, string payload) :
+            this(@namespace, sourceId, destinationId)
+        {
             PayloadType = ProtoBuf.PayloadType.String;
             PayloadUtf8 = payload ?? throw new ArgumentNullException(nameof(payload));
+        }
+
+        public ChromecastMessage(string @namespace, string sourceId, string destinationId, byte[] payload) :
+            this(@namespace, sourceId, destinationId)
+        {
+            PayloadType = ProtoBuf.PayloadType.Binary;
+            PayloadBinary = payload ?? throw new ArgumentNullException(nameof(payload));
         }
 
         [ProtoMember(1)]
@@ -73,10 +83,10 @@
         }
 #endif
 
-        public string GetPayloadByType()
-        {
-            return PayloadType == ProtoBuf.PayloadType.Binary ? Encoding.UTF8.GetString(PayloadBinary) : PayloadUtf8;
-        }
+        //public string GetPayloadByType()
+        //{
+        //    return PayloadType == ProtoBuf.PayloadType.Binary ? Encoding.UTF8.GetString(PayloadBinary) : PayloadUtf8;
+        //}
     }
 
     /// <summary>

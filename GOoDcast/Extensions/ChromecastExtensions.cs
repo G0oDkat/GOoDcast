@@ -30,7 +30,8 @@
         {
             var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
             var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
-            var application = new TwitchApplication(connectionChannel, receiverChannel);
+            var mediaChannel = chromecast.GetChannel<IMediaChannel>();
+            var application = new TwitchApplication(connectionChannel, receiverChannel, mediaChannel);
             await application.LaunchApplicationAsync();
             return application;
         }

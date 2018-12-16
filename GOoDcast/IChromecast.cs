@@ -7,6 +7,7 @@
     public interface IChromecast : IDisposable
     {
         string Name { get; }
+        bool IsConnected { get; }
 
         Task ConnectAsync();
         Task DisconnectAsync();
