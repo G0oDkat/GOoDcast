@@ -25,9 +25,19 @@
         /// </summary>
         /// <param name="applicationId">application identifier</param>
         /// <returns>receiver status</returns>
-        public Task<ReceiverStatus> LaunchAsync(string sourceId, string destinationId, string applicationId)
+        public async Task<ReceiverStatus> LaunchAsync(string sourceId, string destinationId, string applicationId, bool joinExisting)
         {
-            return RequestAsync(sourceId, destinationId, new LaunchMessage {ApplicationId = applicationId});
+            if (joinExisting)
+            {
+                IEnumerable<Application> applications = (await CheckStatusAsync(sourceId, destinationId).ConfigureAwait(false)).Applications;
+
+                if (applications.Any(a => a.AppId == applicationId))
+                {
+                    return Status;
+                }
+            }
+
+            return await RequestAsync(sourceId, destinationId, new LaunchMessage {ApplicationId = applicationId});
         }
 
         public Task<ReceiverStatus> SetVolumeAsync(string sourceId, string destinationId, float level)

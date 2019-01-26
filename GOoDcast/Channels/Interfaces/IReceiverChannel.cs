@@ -20,7 +20,7 @@
         /// <param name="sourceId"></param>
         /// <param name="destinationId"></param>
         /// <param name="applicationId">application identifier</param>
-        Task<ReceiverStatus> LaunchAsync(string sourceId, string destinationId, string applicationId);
+        Task<ReceiverStatus> LaunchAsync(string sourceId, string destinationId, string applicationId, bool joinExisting);
 
         /// <summary>
         ///     Checks the connection is well established

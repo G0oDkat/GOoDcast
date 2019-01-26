@@ -28,7 +28,9 @@
             Name = name ?? throw new ArgumentNullException(nameof(name));
 
             client = new ChromecastClient();
-            kernel = new StandardKernel(new ChannelModule());
+
+            var settings = new NinjectSettings { LoadExtensions = false };
+            kernel = new StandardKernel(settings, new ChannelModule());
             kernel.Bind<IChromecastClient>().ToConstant(client);
 
             connectionChannel = kernel.Get<IConnectionChannel>();

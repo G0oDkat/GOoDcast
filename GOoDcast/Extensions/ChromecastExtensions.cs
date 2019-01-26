@@ -16,12 +16,33 @@
             return application;
         }
 
+        public static async Task<DashCastApplication> LaunchDashCast(this IChromecast chromecast)
+        {
+            var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
+            var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
+            var dashCastChannel = chromecast.GetChannel<IDashCastChannel>();
+            var application = new DashCastApplication(connectionChannel, receiverChannel, dashCastChannel);
+            await application.LaunchApplicationAsync();
+            return application;
+        }
+
+        public static async Task<DefaultMediaApplication> LaunchDefaultMediaApplication(this IChromecast chromecast)
+        {
+            var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
+            var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
+            var mediaChannel = chromecast.GetChannel<IMediaChannel>();
+            var application = new DefaultMediaApplication(connectionChannel, receiverChannel, mediaChannel);
+            await application.LaunchApplicationAsync();
+            return application;
+        }
+
         public static async Task<YouTubeApplication> LaunchYouTube(this IChromecast chromecast)
         {
             var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
             var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
             var mediaChannel = chromecast.GetChannel<IMediaChannel>();
-            var application = new YouTubeApplication(connectionChannel, receiverChannel, mediaChannel);
+            var youTubeChannel = chromecast.GetChannel<IYouTubeChannel>();
+            var application = new YouTubeApplication(connectionChannel, receiverChannel, mediaChannel, youTubeChannel);
             await application.LaunchApplicationAsync();
             return application;
         }
@@ -32,6 +53,16 @@
             var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
             var mediaChannel = chromecast.GetChannel<IMediaChannel>();
             var application = new TwitchApplication(connectionChannel, receiverChannel, mediaChannel);
+            await application.LaunchApplicationAsync();
+            return application;
+        }
+
+        public static async Task<PlexApplication> LaunchPlex(this IChromecast chromecast)
+        {
+            var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
+            var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
+            var mediaChannel = chromecast.GetChannel<IMediaChannel>();
+            var application = new PlexApplication(connectionChannel, receiverChannel, mediaChannel);
             await application.LaunchApplicationAsync();
             return application;
         }

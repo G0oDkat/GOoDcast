@@ -49,7 +49,7 @@
         public async Task LaunchApplicationAsync()
         {
             await ReceiverChannel.LaunchAsync(DefaultIdentifiers.SourceId, DefaultIdentifiers.DestinationId,
-                                              ApplicationId);
+                                              ApplicationId, true);
             await ConnectionChannel.ConnectAsync(DefaultIdentifiers.SourceId, TransportId);
         }
 

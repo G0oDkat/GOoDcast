@@ -18,7 +18,7 @@ namespace GOoDcast.Applications
 
         public Task LoadUrl(string url)
         {
-            return webChannel.LoadUrl(DefaultIdentifiers.SourceId, TransportId, SessionId, url);
+            return webChannel.LoadUrl(DefaultIdentifiers.SourceId, TransportId, WebApplicationId, url);
         }
     }
 }

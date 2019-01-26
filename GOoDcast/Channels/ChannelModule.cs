@@ -12,6 +12,8 @@
             Bind<IReceiverChannel>().To<ReceiverChannel>();            
             Bind<IMediaChannel>().To<MediaChannel>();
             Bind<IWebChannel>().To<WebChannel>();
+            Bind<IDashCastChannel>().To<DashCastChannel>();
+            Bind<IYouTubeChannel>().To<YouTubeChannel>();
         }
     }
 }

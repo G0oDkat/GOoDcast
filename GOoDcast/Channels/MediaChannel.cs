@@ -90,7 +90,7 @@
                                 {
                                     Media = media,
                                     AutoPlay = autoPlay,
-                                    ActiveTrackIds = activeTrackIds,
+                                    //ActiveTrackIds = activeTrackIds,
                                     SessionId = sessionId
                                 });
         }

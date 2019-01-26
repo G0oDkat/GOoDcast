@@ -66,7 +66,7 @@ namespace GOoDcast.Channels
             return (await completionSource.Task).ToObject<TResponse>();
         }
 
-        protected Task SendAsync(string sourceId, string destinationId, IMessage message)
+        protected Task SendAsync(string sourceId, string destinationId, object message)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
 
