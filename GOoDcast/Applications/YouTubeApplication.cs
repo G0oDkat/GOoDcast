@@ -22,7 +22,7 @@
 
         public Task LoadVideoAsync(string videoId)
         {
-           return youTubeChannel.LoadVideo(DefaultIdentifiers.SourceId, TransportId, videoId);
+           return youTubeChannel.LoadVideo("sender-500", TransportId, videoId);
         }
 
         //public Task LoadAsync(string mediaUrl)

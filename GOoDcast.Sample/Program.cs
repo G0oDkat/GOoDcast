@@ -2,25 +2,37 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Reactive.Linq;
+    using System.Reactive.Threading.Tasks;
     using System.Threading;
     using System.Threading.Tasks;
     using Applications;
     using Device;
     using Extensions;
-    using Models;
-    using Models.Media;
 
     internal class Program
     {
         private static async Task Main(string[] args)
         {
+
+
             //Console.WriteLine("Locating devices");
             //IReadOnlyCollection<DeviceInfo> devices = await DeviceLocator.LocateDevicesAsync();
             //Console.WriteLine($"Devices Located: {devices.Count}");
 
             //if (devices.Any())
 
-            var deviceInfo = new DeviceInfo("192.168.0.164", "Huppy Fluppy");
+            //IReadOnlyCollection<DeviceInfo> deviceInfos = await SsdpDeviceLocator.LocateDevicesAsync();
+
+            IReadOnlyCollection<DeviceInfo> deviceInfos = await MdnsDeviceLocator.LocateDevicesAsync();
+
+            //IObservable<DeviceInfo> deviceInfos3 = MdnsDeviceLocator.LocateDevicesContinuous();
+
+            //IEnumerable<DeviceInfo> info = deviceInfos3.Latest();
+
+
+            var deviceInfo = deviceInfos.First();
             try
             {
                 using (var chromecast = new Chromecast(deviceInfo))
@@ -93,7 +105,7 @@
                     //await Task.Delay(5000);
                     await chromecast.DisconnectAsync();
                 }
-               
+
                 //await Task.Delay(5000);
                 //using (var chromecast = new Chromecast(deviceInfo))
                 //{
@@ -105,65 +117,65 @@
                 //}
 
 
-                
-
-                    //WebApplication web = await chromecast.LaunchWeb();
-                    //await web.LoadUrl("https://www.google.de/");
-                    //await Task.Delay(5000);
-                    //YouTubeApplication app = await chromecast.LaunchYouTube();                    
-                    //await app.LoadAsync("AWKzr6n0ea0");
 
 
-                    //await chromecast.DisconnectAsync();
+                //WebApplication web = await chromecast.LaunchWeb();
+                //await web.LoadUrl("https://www.google.de/");
+                //await Task.Delay(5000);
+                //YouTubeApplication app = await chromecast.LaunchYouTube();                    
+                //await app.LoadAsync("AWKzr6n0ea0");
 
-                    //Console.WriteLine($"Connecting to Device. IP: {deviceInfo.IpAddress} Name: {deviceInfo.FriendlyName}");
-                    //await chromecast.ConnectAsync();
-                    //Console.WriteLine("Device connected");
 
-                    //WebApplication app = await chromecast.LaunchWeb();
+                //await chromecast.DisconnectAsync();
 
-                    //await Task.Delay(5000);
-                    //await app.LoadUrl("https://www.google.de/");
+                //Console.WriteLine($"Connecting to Device. IP: {deviceInfo.IpAddress} Name: {deviceInfo.FriendlyName}");
+                //await chromecast.ConnectAsync();
+                //Console.WriteLine("Device connected");
 
-                    //Console.WriteLine("Launching YouTube");
-                    //YouTubeApplication app = await chromecast.LaunchYouTube();
-                    //Console.WriteLine("App launched");
+                //WebApplication app = await chromecast.LaunchWeb();
 
-                    //Console.WriteLine("Loading video");
-                    //await app.LoadAsync("SokndgrCMWU");
-                    //Console.WriteLine("Video loaded");
-                    //await app.SetIsMutedAsync(true);
-                    //await Task.Delay(2000);
-                    //await app.SetIsMutedAsync(false);
-                    //await Task.Delay(2000);
-                    //await app.SetVolumeAsync(0.5f);
-                    //await Task.Delay(2000);
-                    //await app.SetVolumeAsync(1f);
-                    //await Task.Delay(2000);
-                    //await app.PauseAsync();
-                    //await Task.Delay(2000);
-                    //await app.PlayAsync();
-                    //await Task.Delay(2000);
-                    //await app.SeekAsync(1);
-                    //await Task.Delay(2000);
-                    //await app.StopAsync();
+                //await Task.Delay(5000);
+                //await app.LoadUrl("https://www.google.de/");
 
-                    //await Task.Delay(5000);
-                    //Console.WriteLine("Stopping app");
-                    //await app.StopApplicationAsync();
-                    //Console.WriteLine("App stopped");
-                    //await Task.Delay(5000);
-                    //Console.WriteLine("Disconnecting device");
-                    //await chromecast.DisconnectAsync();
-                    //Console.WriteLine("Device disconnected");
-                
+                //Console.WriteLine("Launching YouTube");
+                //YouTubeApplication app = await chromecast.LaunchYouTube();
+                //Console.WriteLine("App launched");
+
+                //Console.WriteLine("Loading video");
+                //await app.LoadAsync("SokndgrCMWU");
+                //Console.WriteLine("Video loaded");
+                //await app.SetIsMutedAsync(true);
+                //await Task.Delay(2000);
+                //await app.SetIsMutedAsync(false);
+                //await Task.Delay(2000);
+                //await app.SetVolumeAsync(0.5f);
+                //await Task.Delay(2000);
+                //await app.SetVolumeAsync(1f);
+                //await Task.Delay(2000);
+                //await app.PauseAsync();
+                //await Task.Delay(2000);
+                //await app.PlayAsync();
+                //await Task.Delay(2000);
+                //await app.SeekAsync(1);
+                //await Task.Delay(2000);
+                //await app.StopAsync();
+
+                //await Task.Delay(5000);
+                //Console.WriteLine("Stopping app");
+                //await app.StopApplicationAsync();
+                //Console.WriteLine("App stopped");
+                //await Task.Delay(5000);
+                //Console.WriteLine("Disconnecting device");
+                //await chromecast.DisconnectAsync();
+                //Console.WriteLine("Device disconnected");
+
             }
             catch (Exception exception)
             {
                 Console.WriteLine(exception);
                 throw;
             }
-            
+
         }
 
         private static async Task ConnectAndDisconnect(IChromecast chromecast)

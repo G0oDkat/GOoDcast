@@ -20,15 +20,15 @@
 
 
 
-            //if (videoId == null) throw new ArgumentNullException(nameof(videoId));
+            if (videoId == null) throw new ArgumentNullException(nameof(videoId));
 
-            //return SendAsync(sourceId, destinationId,
-            //                 new LoadVideoMessage
-            //                 {
-            //                     Type = "flingVideo",
-            //                     Data = new VideoData { CurrentTime = 0, VideoId = videoId },
-            //                     //RequestId = 55
-            //                 });
+            return SendAsync(sourceId, destinationId,
+                             new LoadVideoMessage
+                             {
+                                 Type = "flingVideo",
+                                 Data = new VideoData { CurrentTime = 0, VideoId = videoId },
+                                 //RequestId = 55
+                             });
         }
 
         public Task GetScreenId(string sourceId, string destinationId, string videoId)
