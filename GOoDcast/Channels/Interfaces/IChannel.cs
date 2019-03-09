@@ -2,7 +2,7 @@ namespace GOoDcast.Channels
 {
     using System.Threading.Tasks;
 
-    public interface IChromecastChannel
+    public interface IChannel
     {
         string Namespace { get; }
 

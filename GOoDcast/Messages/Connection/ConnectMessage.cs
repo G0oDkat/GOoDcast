@@ -1,12 +1,9 @@
 ﻿namespace GOoDcast.Messages.Connection
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
-    /// Connect message
+    ///     Connect message
     /// </summary>
-    [DataContract]
-    class ConnectMessage : Message
+    internal class ConnectMessage : Message
     {
     }
 }

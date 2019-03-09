@@ -29,7 +29,7 @@
         {
             YouTubeApplication application = await chromecast.LaunchYouTube();
 
-            await application.LoadVideoAsync("AWKzr6n0ea0");
+            //await application.LoadVideoAsync("AWKzr6n0ea0");
 
             await application.StopApplicationAsync();
         }

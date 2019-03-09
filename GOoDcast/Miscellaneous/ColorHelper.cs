@@ -30,12 +30,7 @@
         /// <returns>the nullable color object</returns>
         public static Color? FromNullableHexString(string color)
         {
-            if (string.IsNullOrEmpty(color))
-            {
-                return null;
-            }
-
-            return FromHexString(color);
+            return string.IsNullOrEmpty(color) ? (Color?) null : FromHexString(color);
         }
 
         /// <summary>
@@ -45,7 +40,7 @@
         /// <returns>the hexadecimal string</returns>
         public static string ToHexString(this Color color)
         {
-            return $"#{color.R.ToString("X2", null)}{color.G.ToString("X2", null)}{color.B.ToString("X2", null)}{color.A.ToString("X2", null)}";
+            return $"#{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
         }
 
         /// <summary>
@@ -55,7 +50,7 @@
         /// <returns>the hexadecimal string</returns>
         public static string ToHexString(this Color? color)
         {
-            return color == null ? null : ToHexString((Color)color);
+            return color?.ToHexString();
         }
     }
 }

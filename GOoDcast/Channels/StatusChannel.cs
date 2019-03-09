@@ -11,7 +11,7 @@
     /// </summary>
     /// <typeparam name="TStatus">status type</typeparam>
     /// <typeparam name="TStatusMessage">status message type</typeparam>
-    public abstract class StatusChannel<TStatus, TStatusMessage> : ChromecastChannel, IStatusChannel<TStatus>
+    public abstract class StatusChannel<TStatus, TStatusMessage> : JsonRequestResponseChannel, IStatusChannel<TStatus>
         where TStatusMessage : IStatusMessage<TStatus>
     {
         private TStatus status;

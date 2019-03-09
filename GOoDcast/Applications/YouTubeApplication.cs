@@ -1,9 +1,9 @@
 ﻿namespace GOoDcast.Applications
 {
+    using System;
     using System.Threading.Tasks;
     using Channels;
     using Miscellaneous;
-    using Models.Media;
 
     public class YouTubeApplication : MediaApplicationBase
     {
@@ -15,31 +15,18 @@
                                   IMediaChannel mediaChannel, IYouTubeChannel youTubeChannel) :
             base(YouTubeApplicationId, connectionChannel, receiverChannel, mediaChannel)
         {
-            this.youTubeChannel = youTubeChannel;
-            //client.Channels.GetYouTubeChannel().ScreenIdChanged += OnScreenIdChanged;
+            this.youTubeChannel = youTubeChannel ?? throw new ArgumentNullException(nameof(youTubeChannel));            
         }
 
-
-        public Task LoadVideoAsync(string videoId)
+        public event EventHandler<string> ScreenIdChanged
         {
-           return youTubeChannel.LoadVideo("sender-500", TransportId, videoId);
+            add => youTubeChannel.ScreenIdChanged += value;
+            remove => youTubeChannel.ScreenIdChanged -= value;
         }
 
-        //public Task LoadAsync(string mediaUrl)
-        //{
-        //    var mediaInformation = new MediaInformation
-        //    {
-        //        ContentId = mediaUrl,
-        //        ContentType = "x-youtube/video",
-        //        StreamType = StreamType.Buffered
-        //    };
-        //    return base.LoadAsync(mediaInformation);
-        //}
-        //public event EventHandler<string> ScreenIdChanged;
-
-        //private void OnScreenIdChanged(object sender, string s)
-        //{
-        //    ScreenIdChanged?.Invoke(this, s);
-        //}
+        public Task GetScreenId()
+        {
+            return youTubeChannel.GetScreenId(DefaultIdentifiers.SourceId, TransportId);
+        }
     }
 }

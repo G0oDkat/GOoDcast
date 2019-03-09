@@ -10,15 +10,15 @@
         /// <summary>
         ///     Converts a camel case string to underscore notation
         /// </summary>
-        /// <param name="str">string to convert</param>
+        /// <param name="value">string to convert</param>
         /// <returns>the converted string to underscore notation</returns>
-        public static string ToUnderscoreUpperInvariant(this string str)
+        public static string ToUnderscoreUpperInvariant(this string value)
         {
-            if (string.IsNullOrEmpty(str)) return str;
+            if (string.IsNullOrEmpty(value)) return value;
 
             var stringBuilder = new StringBuilder();
             bool first = true;
-            foreach (char c in str)
+            foreach (char c in value)
             {
                 if (first)
                 {
@@ -39,18 +39,45 @@
             return stringBuilder.ToString();
         }
 
+        public static string ToUnderscoreLowerInvariant(this string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+
+            var stringBuilder = new StringBuilder();
+            bool first = true;
+            foreach (char c in value)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    if (char.IsUpper(c))
+                    {
+                        stringBuilder.AppendFormat("_{0}", char.ToLowerInvariant(c));
+                        continue;
+                    }
+                }
+
+                stringBuilder.Append(char.ToLowerInvariant(c));
+            }
+
+            return stringBuilder.ToString();
+        }
+
         /// <summary>
         ///     Converts a string to camel case notation
         /// </summary>
-        /// <param name="str">string to convert</param>
+        /// <param name="value">string to convert</param>
         /// <returns>camel case notation</returns>
-        public static string ToCamelCase(this string str)
+        public static string ToCamelCase(this string value)
         {
-            if (string.IsNullOrEmpty(str)) return str;
+            if (string.IsNullOrEmpty(value)) return value;
 
             var stringBuilder = new StringBuilder();
             bool underscore = true;
-            foreach (char c in str)
+            foreach (char c in value)
                 if (underscore)
                 {
                     underscore = false;

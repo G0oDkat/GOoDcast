@@ -2,8 +2,12 @@
 
 namespace GOoDcast.Channels
 {
-    public interface IYouTubeChannel : IChromecastChannel
+    using System;
+
+    public interface IYouTubeChannel : IChannel
     {
-        Task LoadVideo(string sourceId, string destinationId, string videoId);
+        event EventHandler<string> ScreenIdChanged;
+
+        Task GetScreenId(string sourceId, string destinationId);
     }
 }

@@ -1,12 +1,9 @@
 ﻿namespace GOoDcast.Messages.Hearbeat
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
-    /// Pong message
+    ///     Pong message
     /// </summary>
-    [DataContract]
-    class PongMessage : Message
+    internal class PongMessage : Message
     {
     }
 }

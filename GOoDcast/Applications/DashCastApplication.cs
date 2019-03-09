@@ -15,10 +15,31 @@
             this.dashCastChannel = dashCastChannel ?? throw new ArgumentNullException(nameof(dashCastChannel));
         }
 
-        public Task LoadUrl(string url)
+        public Task LoadUrlAsync(string url)
         {
             return dashCastChannel.LoadUrl(DefaultIdentifiers.SourceId, TransportId, url);
         }
+
+        public Task LoadYouTubeViedeoAsync(string videoId)
+        {
+            return LoadUrlAsync($"https://www.youtube.com/embed/{videoId}?rel=0&amp;autoplay=1;fs=0;autohide=0;hd=0;");
+        }
+
+        public Task LoadTwitchChannelAsync(string channel)
+        {
+            return LoadUrlAsync($"https://player.twitch.tv/?channel={channel}");
+        }
+
+        public Task LoadTwitchVideoAsync(string video)
+        {
+            return LoadUrlAsync($"https://player.twitch.tv/?video={video}");
+        }
+
+        public Task LoadTwitchCollectionAsync(string collection)
+        {
+            return LoadUrlAsync($"https://player.twitch.tv/?collection={collection}");
+        }
+
 
     }
 }

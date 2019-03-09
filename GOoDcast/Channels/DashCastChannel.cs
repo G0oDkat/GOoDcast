@@ -2,9 +2,11 @@
 {
     using System.Runtime.Serialization;
     using System.Threading.Tasks;
-    using Miscellaneous;
+    using Messages.DashCast;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Serialization;
 
-    public class DashCastChannel : ChromecastChannel, IDashCastChannel
+    public class DashCastChannel : JsonPayloadChannel, IDashCastChannel
     {
         public DashCastChannel(IChromecastClient client) : base(client, "urn:x-cast:es.offd.dashcast")
         {            
@@ -14,7 +16,7 @@
         {
 
             return base.SendAsync(sourceId, destinationId,
-                                  new DashCastMessage()
+                                  new DashCastMessage
                                   {
                                       Url = url,
                                       Force = false,
@@ -24,20 +26,9 @@
 
         }
 
-        [DataContract]
-        class DashCastMessage
+        protected override Task OnMessageReceivedAsync(string sourceId, string destinationId, JObject payload)
         {
-            [DataMember(Name = "url")]
-            public string Url { get; set; }
-
-            [DataMember(Name = "force")]
-            public bool Force { get; set; }
-
-            [DataMember(Name = "reload")]
-            public bool Reload { get; set; }
-
-            [DataMember(Name = "reload_time")]
-            public int ReloadTime { get; set; }
+            return Task.CompletedTask;
         }
     }
 }

@@ -66,5 +66,15 @@
             await application.LaunchApplicationAsync();
             return application;
         }
+
+        public static async Task<RedBullTvApplication> LaunchRedBullTV(this IChromecast chromecast)
+        {
+            var connectionChannel = chromecast.GetChannel<IConnectionChannel>();
+            var receiverChannel = chromecast.GetChannel<IReceiverChannel>();
+            var mediaChannel = chromecast.GetChannel<IMediaChannel>();
+            var application = new RedBullTvApplication(connectionChannel, receiverChannel, mediaChannel);
+            await application.LaunchApplicationAsync();
+            return application;
+        }
     }
 }

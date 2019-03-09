@@ -18,7 +18,7 @@
         private const int Port = 8009;
         private const int Timeout = 30000;
 
-        private readonly Dictionary<string, IChromecastChannel> channels;
+        private readonly Dictionary<string, IChannel> channels;
         private readonly AsyncLock mutex;
 
         private TcpClient client;
@@ -31,7 +31,7 @@
         public ChromecastClient()
         {
             mutex = new AsyncLock();
-            channels = new Dictionary<string, IChromecastChannel>();
+            channels = new Dictionary<string, IChannel>();
         }
 
         public bool IsConnected { get; private set; }
@@ -43,7 +43,7 @@
             receiverCancellationTokenSource?.Dispose();
         }
 
-        public void BindChannel(IChromecastChannel channel)
+        public void BindChannel(IChannel channel)
         {
             if (channel == null) throw new ArgumentNullException(nameof(channel));
 
@@ -120,6 +120,9 @@
         private async Task<ChromecastMessage> ReciveAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
+
+            
+
             return await ProtoBufSerializer.DeserializeWithLengthPrefixAsync<ChromecastMessage>(stream,
                                                                                                 PrefixStyle
                                                                                                     .Fixed32BigEndian,
@@ -162,7 +165,7 @@
         {
             Debug.WriteLine("R {0}", castMessage);
 
-            if (channels.TryGetValue(castMessage.Namespace, out IChromecastChannel channel))
+            if (channels.TryGetValue(castMessage.Namespace, out IChannel channel))
                 switch (castMessage.PayloadType)
                 {
                     case PayloadType.String:

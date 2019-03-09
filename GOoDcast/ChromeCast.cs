@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
     using Channels;
     using Device;
@@ -12,7 +11,7 @@
 
     public class Chromecast : IChromecast
     {
-        private readonly HashSet<IChromecastChannel> channels;
+        private readonly HashSet<IChannel> channels;
         private readonly IChromecastClient client;
         private readonly IConnectionChannel connectionChannel;
         private readonly string IpAddress;
@@ -39,7 +38,7 @@
             client.BindChannel(connectionChannel);
             client.BindChannel(heartbeatChannel);
 
-            channels = new HashSet<IChromecastChannel> {connectionChannel, heartbeatChannel};
+            channels = new HashSet<IChannel> {connectionChannel, heartbeatChannel};
         }
 
         public string Name { get; }
@@ -63,7 +62,7 @@
             kernel?.Dispose();
         }
 
-        public TChannel GetChannel<TChannel>() where TChannel : IChromecastChannel
+        public TChannel GetChannel<TChannel>() where TChannel : IChannel
         {
             TChannel channel = channels.OfType<TChannel>().FirstOrDefault();
 

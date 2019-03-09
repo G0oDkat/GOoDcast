@@ -6,40 +6,32 @@
     using Messages.YouToube;
     using Newtonsoft.Json.Linq;
 
-    public class YouTubeChannel : ChromecastChannel, IYouTubeChannel
+    public class YouTubeChannel : JsonRequestResponseChannel, IYouTubeChannel
     {
-        //public event EventHandler<string> ScreenIdChanged;
+        public event EventHandler<string> ScreenIdChanged;
+
         public YouTubeChannel(IChromecastClient client) : base(client, "urn:x-cast:com.google.youtube.mdx")
         {
             //MessageReceived += YouTubeChannel_MessageReceived;
         }
 
-        public Task LoadVideo(string sourceId, string destinationId, string videoId)
-        {
-
-
-
-
-            if (videoId == null) throw new ArgumentNullException(nameof(videoId));
-
-            return SendAsync(sourceId, destinationId,
-                             new LoadVideoMessage
-                             {
-                                 Type = "flingVideo",
-                                 Data = new VideoData { CurrentTime = 0, VideoId = videoId },
-                                 //RequestId = 55
-                             });
-        }
-
-        public Task GetScreenId(string sourceId, string destinationId, string videoId)
+        public Task GetScreenId(string sourceId, string destinationId)
         {
             return SendAsync(sourceId, destinationId, new GetScreenIdMessage());
         }
 
         protected override Task OnPushMessageReceivedAsync(string sourceId, string destinationId, JObject payload)
         {
-            Debug.WriteLine(payload);
+            payload.ToObject<YouTubeSessionStatusResponse>();
+
+            OnScreenIdChanged(response.Data.ScreenId);
+
             return Task.CompletedTask;
+        }
+
+        protected virtual void OnScreenIdChanged(string screenId)
+        {
+            ScreenIdChanged?.Invoke(this, screenId);
         }
 
         //private void YouTubeChannel_MessageReceived(object sender, ChromecastSSLClientDataReceivedArgs e)

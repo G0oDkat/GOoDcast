@@ -1,11 +1,8 @@
 ﻿namespace GOoDcast.Models.Media
 {
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Movie metadata
     /// </summary>
-    [DataContract]
     public class MovieMetadata : GenericMediaMetadata
     {
         /// <summary>
@@ -19,7 +16,6 @@
         /// <summary>
         /// Gets or sets the studio
         /// </summary>
-        [DataMember(Name = "studio")]
         public string Studio { get; set; }
     }
 }

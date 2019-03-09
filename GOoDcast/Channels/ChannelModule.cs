@@ -1,6 +1,5 @@
 ﻿namespace GOoDcast.Channels
 {
-    using System;
     using Ninject.Modules;
 
     internal class ChannelModule : NinjectModule
@@ -11,7 +10,6 @@
             Bind<IHeartbeatChannel>().To<HeartbeatChannel>();
             Bind<IReceiverChannel>().To<ReceiverChannel>();            
             Bind<IMediaChannel>().To<MediaChannel>();
-            Bind<IWebChannel>().To<WebChannel>();
             Bind<IDashCastChannel>().To<DashCastChannel>();
             Bind<IYouTubeChannel>().To<YouTubeChannel>();
         }

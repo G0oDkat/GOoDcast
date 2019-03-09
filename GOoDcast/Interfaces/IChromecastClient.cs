@@ -12,7 +12,7 @@
 
         Task DisconnectAsync();
 
-        void BindChannel(IChromecastChannel channel);
+        void BindChannel(IChannel channel);
 
         Task SendAsync(string @namespace, string sourceId, string destinationId, string payload);
 

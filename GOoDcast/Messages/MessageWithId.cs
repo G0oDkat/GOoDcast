@@ -1,34 +1,31 @@
 ﻿namespace GOoDcast.Messages
 {
     using System;
-    using System.Runtime.Serialization;
     using System.Threading;
+    using Newtonsoft.Json;
 
     /// <summary>
-    /// Message with request identifier
+    ///     Message with request identifier
     /// </summary>
-    [DataContract]
     public class MessageWithId : Message, IMessageWithId
     {
         private static int _id = new Random().Next();
 
-        /// <summary>
-        /// Gets a value indicating whether the message has a request identifier
-        /// </summary>
-        public bool HasRequestId
-        {
-            get { return _requestId != null; }
-        }
+        private int? requestId;
 
-        private int? _requestId;
         /// <summary>
-        /// Gets or sets the request identifier
+        ///     Gets a value indicating whether the message has a request identifier
         /// </summary>
-        [DataMember(Name = "requestId")]
+        [JsonIgnore]
+        public bool HasRequestId => requestId != null;
+
+        /// <summary>
+        ///     Gets or sets the request identifier
+        /// </summary>        
         public int RequestId
         {
-            get { return (int)(_requestId ?? (_requestId = Interlocked.Increment(ref _id))); }
-            set { _requestId = value; }
+            get => requestId ?? (requestId = Interlocked.Increment(ref _id)).Value;
+            set => requestId = value;
         }
     }
 }

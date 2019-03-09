@@ -1,8 +1,5 @@
 ﻿namespace GOoDcast.Channels
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     //public class PlexChannel : MediaChannel
     //{
     //    public static string Urn = "urn:x-cast:plex";

@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace GOoDcast.Messages.YouToube
+﻿namespace GOoDcast.Messages.YouToube
 {
-    using System.Runtime.Serialization;
+    using Newtonsoft.Json;
 
-    class GetScreenIdMessage
+    internal class GetScreenIdMessage
     {
         public GetScreenIdMessage()
         {
             Type = "TYPE_GET_SCREEN_ID";
         }
 
-        [DataMember(Name = "MESSAGE_TYPE")]
+        [JsonProperty(PropertyName= "MESSAGE_TYPE")]
         public string Type { get; set; }
     }
 }

@@ -1,9 +1,6 @@
-﻿using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-
-namespace GOoDcast.Channels
+﻿namespace GOoDcast.Channels
 {
-    public interface IHeartbeatChannel : IChromecastChannel
+    public interface IHeartbeatChannel : IChannel
     {
     }
 }

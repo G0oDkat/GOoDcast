@@ -37,7 +37,7 @@
                 }
             }
 
-            return await RequestAsync(sourceId, destinationId, new LaunchMessage {ApplicationId = applicationId});
+            return await RequestAsync(sourceId, destinationId, new LaunchMessage {AppId = applicationId});
         }
 
         public Task<ReceiverStatus> SetVolumeAsync(string sourceId, string destinationId, float level)
@@ -123,7 +123,7 @@
         {
             var message = new SetVolumeMessage
             {
-                Volume = new Volume {Level = level, IsMuted = isMuted, StepInterval = stepInterval}
+                Volume = new Volume {Level = level, Muted = isMuted, StepInterval = stepInterval}
             };
 
             return RequestAsync(sourceId, destinationId, message);

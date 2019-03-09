@@ -6,7 +6,7 @@
     /// Interface for a status channel
     /// </summary>
     /// <typeparam name="TStatus">status type</typeparam>
-    public interface IStatusChannel<out TStatus> : IChromecastChannel
+    public interface IStatusChannel<out TStatus> : IChannel
     {
         /// <summary>
         /// Raised when the status has changed

@@ -2,7 +2,7 @@
 
 namespace GOoDcast.Channels
 {
-    public interface IDashCastChannel : IChromecastChannel
+    public interface IDashCastChannel : IChannel
     {
         Task LoadUrl(string sourceId, string destinationId, string url);
     }
